@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configure PDF Extraction Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+  <div id="app">
+    <!-- Header -->
+    <header class="bg-white border-b">
+      <div class="max-w-5xl mx-auto px-6 py-4">
+        <div class="flex items-center gap-3">
+          <a href="toolbox.html" class="text-gray-500 hover:text-gray-700">
+            <span class="material-icons">arrow_back</span>
+          </a>
+          <div class="flex items-center gap-3">
+            <span class="material-icons text-2xl text-blue-600 bg-blue-100 p-2 rounded-lg">picture_as_pdf</span>
+            <div>
+              <h1 class="text-xl font-semibold">Configure PDF Extraction Tool</h1>
+              <p class="text-sm text-gray-600">Reads PDFs and extracts specified fields like project address, landlord name, or PO details.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Steps Progress -->
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="flex justify-between items-center">
+        <template v-for="(step, index) in steps" :key="step.id">
+          <!-- Step Button -->
+          <button
+            class="flex flex-col items-center relative"
+            :class="[currentStep >= index ? 'text-blue-600' : 'text-gray-400']"
+            @click="currentStep = index">
+            <!-- Step Circle -->
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-semibold"
+              :class="[
+                currentStep > index ? 'bg-blue-600 border-blue-600 text-white' :
+                currentStep === index ? 'border-blue-600 text-blue-600' :
+                'border-gray-300'
+              ]">
+              <span v-if="currentStep > index" class="material-icons text-sm">check</span>
+              <span v-else>{{ index + 1 }}</span>
+            </div>
+            <!-- Step Name -->
+            <span class="text-sm mt-2">{{ step.name }}</span>
+          </button>
+
+          <!-- Progress Line -->
+          <div v-if="index < steps.length - 1" class="flex-1 mx-4">
+            <div class="h-0.5 relative">
+              <div class="absolute inset-0 bg-gray-200"></div>
+              <div class="absolute inset-0 bg-blue-600 transition-all duration-300"
+                :style="{ width: currentStep > index ? '100%' : '0%' }">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <!-- Upload PDF -->
+      <div v-if="currentStep === 0" class="space-y-6">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+          <span class="material-icons text-6xl text-gray-400 mb-4">upload_file</span>
+          <h3 class="text-lg font-medium mb-2">Upload a sample PDF</h3>
+          <p class="text-sm text-gray-600 mb-4">Drag and drop your file here, or click to browse</p>
+          <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Browse Files
+          </button>
+        </div>
+        <p class="text-sm text-gray-500">Supported file types: PDF (Max size: 10MB)</p>
+      </div>
+
+      <!-- Choose Fields -->
+      <div v-if="currentStep === 1" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6 space-y-4">
+          <h3 class="font-medium mb-4">Select Fields to Extract</h3>
+          <div class="space-y-3">
+            <label v-for="field in defaultFields" :key="field" class="flex items-center">
+              <input type="checkbox" v-model="selectedFields" :value="field"
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-gray-700">{{ field }}</span>
+            </label>
+          </div>
+          
+          <!-- Custom Fields -->
+          <div class="border-t mt-4 pt-4">
+            <div v-for="(field, index) in customFields" :key="index" class="flex items-center gap-2 mb-2">
+              <input type="text" v-model="customFields[index]" placeholder="Enter field name"
+                class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+              <button @click="removeCustomField(index)" class="text-red-600 hover:text-red-800">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+            <button @click="addCustomField" class="text-sm text-blue-600 hover:text-blue-800">
+              + Add Custom Field
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Format -->
+      <div v-if="currentStep === 2" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-4">Choose Output Format</h3>
+          <div class="grid grid-cols-3 gap-4">
+            <button v-for="format in outputFormats" :key="format"
+              class="flex flex-col items-center p-4 border rounded-lg"
+              :class="selectedFormat === format ? 'border-blue-600 bg-blue-50' : 'border-gray-200'"
+              @click="selectedFormat = format">
+              <span class="material-icons mb-2">{{ getFormatIcon(format) }}</span>
+              <span class="text-sm">{{ format }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation Rules -->
+      <div v-if="currentStep === 3" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-medium">Validation Rules</h3>
+            <button @click="addRule" class="text-sm text-blue-600 hover:text-blue-800">
+              + Add Rule
+            </button>
+          </div>
+          <div class="space-y-3">
+            <div v-for="(rule, index) in validationRules" :key="index" 
+              class="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+              <select v-model="rule.field" class="rounded-md border-gray-300 text-sm">
+                <option v-for="field in allFields" :key="field" :value="field">{{ field }}</option>
+              </select>
+              <select v-model="rule.condition" class="rounded-md border-gray-300 text-sm">
+                <option value="required">is required</option>
+                <option value="date">is valid date</option>
+                <option value="number">is number</option>
+              </select>
+              <button @click="removeRule(index)" class="text-red-600 hover:text-red-800">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div v-if="currentStep === 4" class="space-y-6">
+        <div class="bg-white rounded-lg border relative">
+          <!-- Header -->
+          <div class="border-b px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <h3 class="font-medium">Document Analysis</h3>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                <span class="mr-1">●</span>Processing Complete
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-sm text-gray-500">Last updated: Just now</span>
+              <button class="text-sm text-blue-600 hover:text-blue-800">Change File</button>
+            </div>
+          </div>
+          
+          <div class="flex">
+            <!-- Main PDF View -->
+            <div class="flex-1 p-6 min-h-[600px] bg-gray-50">
+              <div class="bg-white rounded-lg shadow-sm p-8 mx-auto max-w-2xl relative">
+                <!-- Document Header -->
+                <div class="mb-8">
+                  <div class="font-bold text-2xl mb-1">INVOICE</div>
+                  <div class="text-sm text-gray-600 hover:bg-blue-50 cursor-pointer transition-colors p-1 rounded inline-block" 
+                    title="PO Number">
+                    #INV-2024-001
+                  </div>
+                </div>
+
+                <div class="flex justify-between mb-8">
+                  <!-- Left Column -->
+                  <div class="space-y-4">
+                    <div>
+                      <div class="text-sm font-medium text-gray-500 mb-1">Bill To:</div>
+                      <div class="hover:bg-yellow-50 cursor-pointer transition-colors p-2 rounded" 
+                        title="Project Address">
+                        <div class="text-sm">123 Main Street, Suite 100</div>
+                        <div class="text-sm">San Francisco, CA 94105</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div class="text-sm font-medium text-gray-500 mb-1">Property Owner:</div>
+                      <div class="hover:bg-green-50 cursor-pointer transition-colors p-2 rounded" 
+                        title="Landlord">
+                        <div class="text-sm">ABC Properties LLC</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div>
+                    <div class="hover:bg-blue-50 cursor-pointer transition-colors p-2 rounded text-right" 
+                      title="Date">
+                      <div class="text-sm font-medium text-gray-500 mb-1">Date</div>
+                      <div class="text-sm">Jan 15, 2024</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Amount Section -->
+                <div class="border-t pt-4">
+                  <div class="flex justify-end">
+                    <div class="hover:bg-purple-50 cursor-pointer transition-colors p-2 rounded text-right" 
+                      title="Amount">
+                      <div class="text-sm font-medium text-gray-500 mb-1">Total Amount</div>
+                      <div class="text-2xl font-bold">$5,250.00</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Field Highlights -->
+                <div class="absolute inset-0 pointer-events-none">
+                  <div class="relative w-full h-full">
+                    <!-- Highlight overlays would be positioned absolutely here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="w-80 border-l">
+              <div class="p-4">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-sm font-medium">Extracted Fields</h4>
+                  <button class="text-sm text-blue-600 hover:text-blue-800">
+                    Export Data
+                  </button>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="p-2 rounded hover:bg-blue-50 cursor-pointer transition-colors">
+                    <div class="text-xs font-medium text-gray-500">Date</div>
+                    <div class="text-sm text-gray-900">Jan 15, 2024</div>
+                  </div>
+                  
+                  <div class="p-2 rounded hover:bg-yellow-50 cursor-pointer transition-colors">
+                    <div class="text-xs font-medium text-gray-500">Project Address</div>
+                    <div class="text-sm text-gray-900">123 Main Street, Suite 100</div>
+                  </div>
+                  
+                  <div class="p-2 rounded hover:bg-green-50 cursor-pointer transition-colors">
+                    <div class="text-xs font-medium text-gray-500">Landlord Name</div>
+                    <div class="text-sm text-gray-900">ABC Properties LLC</div>
+                  </div>
+                  
+                  <div class="p-2 rounded hover:bg-purple-50 cursor-pointer transition-colors">
+                    <div class="text-xs font-medium text-gray-500">Amount</div>
+                    <div class="text-sm text-gray-900">$5,250.00</div>
+                  </div>
+                  
+                  <div class="p-2 rounded hover:bg-blue-50 cursor-pointer transition-colors">
+                    <div class="text-xs font-medium text-gray-500">PO Number</div>
+                    <div class="text-sm text-gray-900">INV-2024-001</div>
+                  </div>
+                </div>
+
+                <!-- Extraction Quality -->
+                <div class="mt-6 pt-6 border-t">
+                  <div class="flex items-center justify-between mb-2">
+                    <h5 class="text-sm font-medium text-gray-700">Extraction Quality</h5>
+                    <span class="text-sm font-medium text-green-600">98% Confident</span>
+                  </div>
+                  <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-600 rounded-full" style="width: 98%"></div>
+                  </div>
+                  <p class="mt-2 text-xs text-gray-500">
+                    Based on document clarity and field recognition accuracy
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="fixed bottom-0 inset-x-0 bg-white border-t">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between">
+        <button @click="prevStep"
+          :disabled="currentStep === 0"
+          class="px-4 py-2 text-sm font-medium rounded-md"
+          :class="currentStep === 0 ? 'text-gray-300' : 'text-gray-700 hover:text-gray-900'">
+          Back
+        </button>
+        <div>
+          <button v-if="currentStep === steps.length - 1"
+            @click="saveConfig"
+            class="inline-flex justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+            Save Configuration
+          </button>
+          <button v-else
+            @click="nextStep"
+            class="inline-flex justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          currentStep: 0,
+          steps: [
+            { id: 1, name: 'Upload PDF' },
+            { id: 2, name: 'Choose Fields' },
+            { id: 3, name: 'Output Format' },
+            { id: 4, name: 'Validation Rules' },
+            { id: 5, name: 'Preview' }
+          ],
+          defaultFields: ['Project Address', 'Landlord Name', 'PO Number', 'Date', 'Amount'],
+          selectedFields: [],
+          customFields: [],
+          outputFormats: ['Excel', 'CSV', 'JSON', 'Database Entry'],
+          selectedFormat: null,
+          validationRules: []
+        }
+      },
+      computed: {
+        allFields() {
+          return [...this.defaultFields, ...this.customFields.filter(f => f)]
+        }
+      },
+      methods: {
+        nextStep() {
+          if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++
+          }
+        },
+        prevStep() {
+          if (this.currentStep > 0) {
+            this.currentStep--
+          }
+        },
+        addCustomField() {
+          this.customFields.push('')
+        },
+        removeCustomField(index) {
+          this.customFields.splice(index, 1)
+        },
+        addRule() {
+          this.validationRules.push({
+            field: this.allFields[0],
+            condition: 'required'
+          })
+        },
+        removeRule(index) {
+          this.validationRules.splice(index, 1)
+        },
+        getFormatIcon(format) {
+          switch(format) {
+            case 'Excel': return 'table_chart'
+            case 'CSV': return 'grid_on'
+            case 'JSON': return 'data_object'
+            case 'Database Entry': return 'storage'
+            default: return 'description'
+          }
+        },
+        saveConfig() {
+          // Save configuration and redirect back to toolbox
+          window.location.href = 'toolbox.html'
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

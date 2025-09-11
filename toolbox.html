@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Toolbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+  <div id="app">
+    <header class="max-w-5xl mx-auto px-6 py-12">
+      <h1 class="text-3xl font-bold text-gray-900">AI Toolbox</h1>
+      <p class="mt-2 text-gray-600">
+        Explore standardized template tools designed to streamline your workflows.
+        Select a tool to see how it can be customized for your processes.
+      </p>
+    </header>
+
+    <section class="max-w-5xl mx-auto px-6 pb-20">
+      <h2 class="text-xl font-semibold mb-6">Available Tools</h2>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div v-for="tool in tools" :key="tool.title"
+          class="bg-white shadow-sm border rounded-lg p-5 hover:shadow-md transition cursor-pointer"
+          @click="selectTool(tool)">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-icons" :class="tool.iconColor + ' ' + tool.bgColor + ' p-2 rounded-md'">{{ tool.icon }}</span>
+            <h3 class="font-semibold">{{ tool.title }}</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-3">{{ tool.description }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide Modal -->
+    <div v-if="selectedTool" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeModal">
+      <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl"
+            @click.stop>
+            
+            <!-- Close button -->
+            <button @click="closeModal" class="absolute right-4 top-4">
+              <span class="material-icons text-gray-500 hover:text-gray-700">close</span>
+            </button>
+
+            <!-- Slide Content -->
+            <div class="flex p-6">
+              <!-- Left Section -->
+              <div class="w-1/3 pr-6 border-r">
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="material-icons text-3xl" :class="selectedTool.iconColor + ' ' + selectedTool.bgColor + ' p-3 rounded-lg'">
+                    {{ selectedTool.icon }}
+                  </span>
+                  <h3 class="text-xl font-semibold">{{ selectedTool.title }}</h3>
+                </div>
+                <p class="text-gray-600 mb-6">{{ selectedTool.description }}</p>
+              </div>
+
+              <!-- Right Section -->
+              <div class="w-2/3 pl-6">
+                <div class="mb-6">
+                  <h4 class="font-medium text-lg mb-3">Use Case</h4>
+                  <p class="text-gray-600">{{ selectedTool.slides[currentSlide].useCase }}</p>
+                </div>
+                <div>
+                  <h4 class="font-medium text-lg mb-3">Benefit</h4>
+                  <p class="text-gray-600">{{ selectedTool.slides[currentSlide].benefit }}</p>
+                </div>
+
+                <!-- Navigation arrows -->
+                <div class="flex justify-between mt-8">
+                  <button @click="prevSlide" 
+                    :class="[currentSlide > 0 ? selectedTool.iconColor : 'text-gray-300']"
+                    :disabled="currentSlide === 0">
+                    <span class="material-icons">arrow_back</span>
+                  </button>
+                  <button @click="nextSlide"
+                    :class="[currentSlide < selectedTool.slides.length - 1 ? selectedTool.iconColor : 'text-gray-300']"
+                    :disabled="currentSlide === selectedTool.slides.length - 1">
+                    <span class="material-icons">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
+              <span class="text-sm text-gray-500">Tool {{ currentSlide + 1 }} of {{ selectedTool.slides.length }}</span>
+              <button @click="showConfig" class="inline-flex justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+                Configure Tool
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          selectedTool: null,
+          currentSlide: 0,
+          tools: [
+            {
+              icon: 'picture_as_pdf',
+              iconColor: 'text-blue-600',
+              bgColor: 'bg-blue-100',
+              title: 'Extract Information from PDF',
+              description: 'Reads PDFs and extracts specified fields like project address, landlord name, or PO details.',
+              slides: [
+                {
+                  useCase: 'You receive dozens of project PDFs with addresses, PO numbers, and landlord names that need manual entry.',
+                  benefit: 'Automatically extracts all key fields, saving hours of repetitive work and reducing errors.'
+                },
+                {
+                  useCase: 'Project proposals arrive in PDF format from multiple vendors with varying layouts.',
+                  benefit: 'Extracts relevant fields consistently across different PDF formats, ensuring no critical data is missed.'
+                },
+                {
+                  useCase: 'Monthly invoices come as PDFs that need to be entered into the accounting system.',
+                  benefit: 'Quickly pulls invoice data into your system, speeding up approvals and reducing late payments.'
+                }
+              ]
+            },
+            {
+              icon: 'search',
+              iconColor: 'text-green-600',
+              bgColor: 'bg-green-100',
+              title: 'System Lookup',
+              description: 'Queries systems (Procore, CMIC, Sage, QBO) for budgets, teams, or outstanding AR.',
+              slides: [
+                {
+                  useCase: 'You need to verify project budgets and outstanding invoices before a client meeting.',
+                  benefit: 'Fetches all relevant information in seconds, giving clarity and confidence in decisions.'
+                },
+                {
+                  useCase: 'A new team member needs access to current project team assignments.',
+                  benefit: 'Quickly identifies team members and roles across systems, saving onboarding time.'
+                },
+                {
+                  useCase: 'Finance needs to reconcile accounts across multiple systems.',
+                  benefit: 'Aggregates financial data automatically, reducing errors and ensuring accuracy.'
+                }
+              ]
+            },
+            {
+              icon: 'description',
+              iconColor: 'text-purple-600',
+              bgColor: 'bg-purple-100',
+              title: 'Populate Form',
+              description: 'Auto-fills forms with collected data (e.g., work orders, permits, award letters).',
+              slides: [
+                {
+                  useCase: 'Filling out repetitive permit applications is time-consuming and error-prone.',
+                  benefit: 'Automatically fills forms with correct data, speeding up submission and reducing mistakes.'
+                },
+                {
+                  useCase: 'Work orders must be generated daily for multiple projects.',
+                  benefit: 'Auto-populates work orders, saving hours of manual entry and standardizing outputs.'
+                },
+                {
+                  useCase: 'Award letters require consistent information across multiple departments.',
+                  benefit: 'Ensures accuracy and consistency in letters, reducing back-and-forth corrections.'
+                }
+              ]
+            },
+            {
+              icon: 'folder_open',
+              iconColor: 'text-yellow-600',
+              bgColor: 'bg-yellow-100',
+              title: 'Track & Collect Documents',
+              description: 'Maintain checklists, track document status, reminders, and completion.',
+              slides: [
+                {
+                  useCase: 'Keeping track of required project documents and submission deadlines is difficult.',
+                  benefit: 'Organizes documents, tracks progress, and sends reminders to ensure nothing is missed.'
+                },
+                {
+                  useCase: 'Multiple departments submit documents at different times.',
+                  benefit: 'Centralizes document tracking, making status visible to all stakeholders instantly.'
+                },
+                {
+                  useCase: 'Clients require regular updates on document completion.',
+                  benefit: 'Generates clear status reports automatically, improving communication and trust.'
+                }
+              ]
+            },
+            {
+              icon: 'verified',
+              iconColor: 'text-red-600',
+              bgColor: 'bg-red-100',
+              title: 'Verify Documents',
+              description: 'Validate documents based on rules (e.g., insurance ≥ $5M, correct vendor name).',
+              slides: [
+                {
+                  useCase: 'Insurance documents must meet specific coverage and expiration requirements.',
+                  benefit: 'Automatically validates documents against rules, reducing risk and ensuring compliance.'
+                },
+                {
+                  useCase: 'Vendor contracts need verification before project approval.',
+                  benefit: 'Flags missing or incorrect information, preventing costly errors or delays.'
+                },
+                {
+                  useCase: 'Compliance audits require document verification for multiple projects.',
+                  benefit: 'Checks all documents quickly and consistently, saving time and reducing audit stress.'
+                }
+              ]
+            },
+            {
+              icon: 'sync',
+              iconColor: 'text-indigo-600',
+              bgColor: 'bg-indigo-100',
+              title: 'System Entry',
+              description: 'Push data into systems (e.g., enter invoices, update budget lines in Procore).',
+              slides: [
+                {
+                  useCase: 'Manual entry of invoices into multiple systems is slow and error-prone.',
+                  benefit: 'Automatically enters data, saving hours of work and ensuring accuracy.'
+                },
+                {
+                  useCase: 'Budget updates must be reflected immediately across systems.',
+                  benefit: 'Syncs updates in real-time, keeping all stakeholders aligned and reducing mistakes.'
+                },
+                {
+                  useCase: 'Project updates are collected from field teams and need to be logged centrally.',
+                  benefit: 'Pushes updates directly into the system, reducing administrative burden and improving data reliability.'
+                }
+              ]
+            }
+          ],
+          selectedTool: null,
+          currentSlide: 0
+        }
+      },
+      methods: {
+        selectTool(tool) {
+          this.selectedTool = tool;
+          this.currentSlide = 0;
+        },
+        closeModal() {
+          this.selectedTool = null;
+        },
+        showConfig() {
+          const pages = {
+            'Extract Information from PDF': 'configure-pdf.html',
+            'System Lookup': 'configure-lookup.html',
+            'Populate Form': 'configure-form.html',
+            'Track & Collect Documents': 'configure-track.html',
+            'Verify Documents': 'configure-verify.html',
+            'System Entry': 'configure-entry.html'
+          };
+          window.location.href = pages[this.selectedTool.title];
+        },
+        nextSlide() {
+          if (this.currentSlide < this.selectedTool.slides.length - 1) {
+            this.currentSlide++;
+          }
+        },
+        prevSlide() {
+          if (this.currentSlide > 0) {
+            this.currentSlide--;
+          }
+        }
+      }
+    }).mount('#app')
+  </script>
+
+</body>
+
+</html>
