@@ -26,16 +26,425 @@
     </div>
   </header>
 
-  <!-- Coming Soon Content -->
-  <div class="max-w-5xl mx-auto px-6 py-12 text-center">
-    <div class="bg-white rounded-lg border p-12">
-      <span class="material-icons text-6xl text-gray-400 mb-4">construction</span>
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
-      <p class="text-gray-600 mb-8">We're working hard to bring you the Document Verification configuration interface.</p>
-      <a href="toolbox.html" class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
-        Return to Toolbox
-      </a>
+  <div id="app">
+    <!-- Steps Progress -->
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="flex justify-between items-center">
+        <template v-for="(step, index) in steps" :key="step.id">
+          <button class="flex flex-col items-center relative"
+            :class="[currentStep >= index ? 'text-red-600' : 'text-gray-400']"
+            @click="currentStep = index">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-semibold"
+              :class="[
+                currentStep > index ? 'bg-red-600 border-red-600 text-white' :
+                currentStep === index ? 'border-red-600 text-red-600' :
+                'border-gray-300'
+              ]">
+              <span v-if="currentStep > index" class="material-icons text-sm">check</span>
+              <span v-else>{{ index + 1 }}</span>
+            </div>
+            <span class="text-sm mt-2">{{ step.name }}</span>
+          </button>
+          <div v-if="index < steps.length - 1" class="flex-1 mx-4">
+            <div class="h-0.5 relative">
+              <div class="absolute inset-0 bg-gray-200"></div>
+              <div class="absolute inset-0 bg-red-600 transition-all duration-300"
+                :style="{ width: currentStep > index ? '100%' : '0%' }">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="max-w-5xl mx-auto px-6 pb-20">
+      <!-- Choose Document Type -->
+      <div v-if="currentStep === 0" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Select Document Type</h3>
+          
+          <div class="grid grid-cols-2 gap-4 mb-8">
+            <button v-for="type in documentTypes" :key="type.name"
+              class="flex items-center gap-4 p-4 border rounded-lg"
+              :class="selectedType === type.name ? 'border-red-600 bg-red-50' : 'border-gray-200'"
+              @click="selectedType = type.name">
+              <span class="material-icons text-2xl" :class="type.color">{{ type.icon }}</span>
+              <div class="text-left">
+                <div class="font-medium">{{ type.name }}</div>
+                <p class="text-sm text-gray-600">{{ type.description }}</p>
+              </div>
+            </button>
+          </div>
+
+          <div class="border-t pt-6">
+            <button class="text-sm text-red-600 hover:text-red-800">
+              + Create Custom Document Type
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Define Rules -->
+      <div v-if="currentStep === 1" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-medium">Verification Rules</h3>
+            <button @click="addRule" class="text-sm text-red-600 hover:text-red-800">
+              + Add Rule
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="(rule, index) in rules" :key="index"
+              class="p-4 bg-gray-50 rounded-lg">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-medium">Rule {{ index + 1 }}</h4>
+                <button @click="removeRule(index)" class="text-red-600 hover:text-red-800">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Field</label>
+                  <select v-model="rule.field" class="block w-full rounded-md border-gray-300 text-sm">
+                    <option v-for="field in fields" :key="field.name" :value="field.name">
+                      {{ field.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Condition</label>
+                  <select v-model="rule.condition" class="block w-full rounded-md border-gray-300 text-sm">
+                    <option value="equals">equals</option>
+                    <option value="greater">greater than</option>
+                    <option value="less">less than</option>
+                    <option value="contains">contains</option>
+                    <option value="matches">matches pattern</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Value</label>
+                  <input type="text" v-model="rule.value"
+                    class="block w-full rounded-md border-gray-300 text-sm"
+                    :placeholder="getValuePlaceholder(rule)">
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center gap-4">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" v-model="rule.required"
+                    class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                  <span class="ml-2 text-sm text-gray-700">Required</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="checkbox" v-model="rule.autoFix"
+                    class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                  <span class="ml-2 text-sm text-gray-700">Enable Auto-Fix</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Source -->
+      <div v-if="currentStep === 2" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Document Source</h3>
+          
+          <!-- Upload Area -->
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-8">
+            <span class="material-icons text-4xl text-gray-400 mb-2">upload_file</span>
+            <p class="text-sm text-gray-600 mb-2">Upload documents or drag and drop</p>
+            <button class="text-sm text-red-600 font-medium">Browse Files</button>
+          </div>
+
+          <!-- System Integration -->
+          <div class="border-t pt-6">
+            <h4 class="text-sm font-medium text-gray-700 mb-4">Or fetch from connected system:</h4>
+            <div class="grid grid-cols-3 gap-4">
+              <button v-for="source in sources" :key="source.name"
+                class="flex items-center gap-3 p-4 border rounded-lg"
+                :class="selectedSource === source.name ? 'border-red-600 bg-red-50' : 'border-gray-200'"
+                @click="selectedSource = source.name">
+                <span class="material-icons text-gray-400">{{ source.icon }}</span>
+                <div class="text-left">
+                  <div class="text-sm font-medium">{{ source.name }}</div>
+                  <p class="text-xs text-gray-600">{{ source.status }}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div v-if="currentStep === 3" class="space-y-6">
+        <div class="bg-white rounded-lg border">
+          <div class="border-b px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <h3 class="font-medium">Verification Results</h3>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                92% Compliant
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button class="text-sm text-red-600 hover:text-red-800">Download Report</button>
+              <button class="text-sm text-red-600 hover:text-red-800">Run Again</button>
+            </div>
+          </div>
+
+          <div class="flex divide-x">
+            <!-- Document Preview -->
+            <div class="flex-1 p-6">
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="bg-white rounded-lg shadow-sm p-8">
+                  <!-- Sample Insurance Certificate -->
+                  <div class="border-b pb-4 mb-4">
+                    <div class="text-2xl font-bold mb-2">Certificate of Insurance</div>
+                    <div class="text-sm text-gray-600">Policy #: INS-2024-001</div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-8">
+                    <div>
+                      <div class="text-sm font-medium text-gray-700 mb-1">Insured Party</div>
+                      <div class="text-sm bg-green-50 border border-green-200 rounded px-2 py-1">
+                        ABC Construction Co.
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="text-sm font-medium text-gray-700 mb-1">Coverage Amount</div>
+                      <div class="text-sm bg-red-50 border border-red-200 rounded px-2 py-1">
+                        $2,000,000
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="text-sm font-medium text-gray-700 mb-1">Valid From</div>
+                      <div class="text-sm bg-green-50 border border-green-200 rounded px-2 py-1">
+                        Jan 1, 2024
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="text-sm font-medium text-gray-700 mb-1">Valid Until</div>
+                      <div class="text-sm bg-green-50 border border-green-200 rounded px-2 py-1">
+                        Dec 31, 2024
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="w-96">
+              <div class="p-4">
+                <div class="space-y-4">
+                  <!-- Overall Score -->
+                  <div class="p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="text-sm font-medium">Overall Compliance</div>
+                      <div class="text-sm font-medium text-green-600">92%</div>
+                    </div>
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-green-600 rounded-full" style="width: 92%"></div>
+                    </div>
+                  </div>
+
+                  <!-- Rule Results -->
+                  <div class="space-y-3">
+                    <div class="p-3 rounded-lg border border-green-200 bg-green-50">
+                      <div class="flex items-center gap-2">
+                        <span class="material-icons text-green-600">check_circle</span>
+                        <div>
+                          <div class="text-sm font-medium">Vendor Name Match</div>
+                          <p class="text-xs text-gray-600">Matches database record</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="p-3 rounded-lg border border-red-200 bg-red-50">
+                      <div class="flex items-center gap-2">
+                        <span class="material-icons text-red-600">error</span>
+                        <div>
+                          <div class="text-sm font-medium">Coverage Amount</div>
+                          <p class="text-xs text-red-600">Below required $5M minimum</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="p-3 rounded-lg border border-green-200 bg-green-50">
+                      <div class="flex items-center gap-2">
+                        <span class="material-icons text-green-600">check_circle</span>
+                        <div>
+                          <div class="text-sm font-medium">Expiration Date</div>
+                          <p class="text-xs text-gray-600">Valid through project duration</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Action Items -->
+                  <div class="border-t pt-4 mt-4">
+                    <h4 class="text-sm font-medium mb-3">Required Actions</h4>
+                    <div class="space-y-2">
+                      <div class="flex items-center gap-2 text-sm text-red-600">
+                        <span class="material-icons text-sm">priority_high</span>
+                        Update coverage to minimum $5M
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="fixed bottom-0 inset-x-0 bg-white border-t">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between">
+        <button @click="prevStep"
+          :disabled="currentStep === 0"
+          class="px-4 py-2 text-sm font-medium rounded-md"
+          :class="currentStep === 0 ? 'text-gray-300' : 'text-gray-700 hover:text-gray-900'">
+          Back
+        </button>
+        <div>
+          <button v-if="currentStep === steps.length - 1"
+            @click="saveConfig"
+            class="inline-flex justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+            Save Configuration
+          </button>
+          <button v-else
+            @click="nextStep"
+            class="inline-flex justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          currentStep: 0,
+          steps: [
+            { id: 1, name: 'Document Type' },
+            { id: 2, name: 'Define Rules' },
+            { id: 3, name: 'Upload Documents' },
+            { id: 4, name: 'Preview' }
+          ],
+          documentTypes: [
+            {
+              name: 'Insurance Certificate',
+              icon: 'policy',
+              color: 'text-blue-600',
+              description: 'Verify coverage amounts and dates'
+            },
+            {
+              name: 'License/Permit',
+              icon: 'gavel',
+              color: 'text-green-600',
+              description: 'Check validity and requirements'
+            },
+            {
+              name: 'Contract/Agreement',
+              icon: 'description',
+              color: 'text-purple-600',
+              description: 'Validate terms and signatures'
+            },
+            {
+              name: 'Custom Template',
+              icon: 'add_circle',
+              color: 'text-gray-600',
+              description: 'Create custom verification rules'
+            }
+          ],
+          selectedType: '',
+          fields: [
+            { name: 'coverage', label: 'Coverage Amount' },
+            { name: 'expiry', label: 'Expiration Date' },
+            { name: 'vendor', label: 'Vendor Name' },
+            { name: 'policy', label: 'Policy Number' }
+          ],
+          rules: [
+            {
+              field: 'coverage',
+              condition: 'greater',
+              value: '5000000',
+              required: true,
+              autoFix: false
+            }
+          ],
+          sources: [
+            {
+              name: 'Document Tracker',
+              icon: 'folder_shared',
+              status: 'Connected'
+            },
+            {
+              name: 'Cloud Storage',
+              icon: 'cloud',
+              status: 'Not connected'
+            },
+            {
+              name: 'Email Inbox',
+              icon: 'mail',
+              status: 'Not connected'
+            }
+          ],
+          selectedSource: ''
+        }
+      },
+      methods: {
+        addRule() {
+          this.rules.push({
+            field: this.fields[0].name,
+            condition: 'equals',
+            value: '',
+            required: false,
+            autoFix: false
+          })
+        },
+        removeRule(index) {
+          this.rules.splice(index, 1)
+        },
+        getValuePlaceholder(rule) {
+          switch(rule.field) {
+            case 'coverage': return 'Enter amount (e.g., 5000000)'
+            case 'expiry': return 'Enter date'
+            case 'vendor': return 'Enter vendor name'
+            default: return 'Enter value'
+          }
+        },
+        nextStep() {
+          if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++
+          }
+        },
+        prevStep() {
+          if (this.currentStep > 0) {
+            this.currentStep--
+          }
+        },
+        saveConfig() {
+          // Save configuration and redirect back to toolbox
+          window.location.href = 'toolbox.html'
+        }
+      }
+    }).mount('#app')
+  </script>
 </body>
 </html>

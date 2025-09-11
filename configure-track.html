@@ -26,16 +26,517 @@
     </div>
   </header>
 
-  <!-- Coming Soon Content -->
-  <div class="max-w-5xl mx-auto px-6 py-12 text-center">
-    <div class="bg-white rounded-lg border p-12">
-      <span class="material-icons text-6xl text-gray-400 mb-4">construction</span>
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
-      <p class="text-gray-600 mb-8">We're working hard to bring you the Document Tracking configuration interface.</p>
-      <a href="toolbox.html" class="inline-flex items-center justify-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">
-        Return to Toolbox
-      </a>
+  <div id="app">
+    <!-- Steps Progress -->
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="flex justify-between items-center">
+        <template v-for="(step, index) in steps" :key="step.id">
+          <button class="flex flex-col items-center relative"
+            :class="[currentStep >= index ? 'text-yellow-600' : 'text-gray-400']"
+            @click="currentStep = index">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-semibold"
+              :class="[
+                currentStep > index ? 'bg-yellow-600 border-yellow-600 text-white' :
+                currentStep === index ? 'border-yellow-600 text-yellow-600' :
+                'border-gray-300'
+              ]">
+              <span v-if="currentStep > index" class="material-icons text-sm">check</span>
+              <span v-else>{{ index + 1 }}</span>
+            </div>
+            <span class="text-sm mt-2">{{ step.name }}</span>
+          </button>
+          <div v-if="index < steps.length - 1" class="flex-1 mx-4">
+            <div class="h-0.5 relative">
+              <div class="absolute inset-0 bg-gray-200"></div>
+              <div class="absolute inset-0 bg-yellow-600 transition-all duration-300"
+                :style="{ width: currentStep > index ? '100%' : '0%' }">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="max-w-5xl mx-auto px-6 pb-20">
+      <!-- Define Checklist -->
+      <div v-if="currentStep === 0" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-medium">Required Documents</h3>
+            <div class="flex items-center gap-4">
+              <button class="text-sm text-yellow-600 hover:text-yellow-800">
+                Import Template
+              </button>
+              <button @click="addDocument" class="text-sm text-yellow-600 hover:text-yellow-800">
+                + Add Document
+              </button>
+            </div>
+          </div>
+
+          <!-- Document List -->
+          <div class="space-y-4">
+            <div v-for="(doc, index) in documents" :key="index"
+              class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+              <div class="flex-1">
+                <input type="text" v-model="doc.name"
+                  class="block w-full rounded-md border-gray-300 text-sm"
+                  placeholder="Document name">
+                <input type="text" v-model="doc.description"
+                  class="mt-2 block w-full rounded-md border-gray-300 text-sm"
+                  placeholder="Brief description">
+              </div>
+              <div class="flex items-center gap-2">
+                <select v-model="doc.category" class="rounded-md border-gray-300 text-sm">
+                  <option value="insurance">Insurance</option>
+                  <option value="contract">Contract</option>
+                  <option value="permit">Permit</option>
+                  <option value="other">Other</option>
+                </select>
+                <button @click="removeDocument(index)" class="text-red-600 hover:text-red-800">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Templates -->
+          <div class="mt-8 pt-6 border-t">
+            <h4 class="text-sm font-medium text-gray-700 mb-4">Or use a template:</h4>
+            <div class="grid grid-cols-3 gap-4">
+              <button v-for="template in templates" :key="template.name"
+                class="flex items-center gap-3 p-4 border rounded-lg"
+                :class="selectedTemplate === template.name ? 'border-yellow-600 bg-yellow-50' : 'border-gray-200'"
+                @click="selectTemplate(template.name)">
+                <span class="material-icons text-gray-400">{{ template.icon }}</span>
+                <div class="text-left">
+                  <div class="font-medium text-sm">{{ template.name }}</div>
+                  <p class="text-xs text-gray-600">{{ template.count }} documents</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assign Responsibility -->
+      <div v-if="currentStep === 1" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Document Assignments</h3>
+          
+          <div class="space-y-6">
+            <div v-for="doc in documents" :key="doc.name" class="border rounded-lg p-4">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-medium">{{ doc.name }}</h4>
+                <span class="text-sm text-gray-500">{{ doc.category }}</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Document Provider
+                  </label>
+                  <select v-model="doc.provider" class="block w-full rounded-md border-gray-300 text-sm">
+                    <option value="vendor">Vendor</option>
+                    <option value="subcontractor">Subcontractor</option>
+                    <option value="internal">Internal Team</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Reviewer/Approver
+                  </label>
+                  <select v-model="doc.reviewer" class="block w-full rounded-md border-gray-300 text-sm">
+                    <option value="pm">Project Manager</option>
+                    <option value="admin">Admin</option>
+                    <option value="legal">Legal Team</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Set Deadlines -->
+      <div v-if="currentStep === 2" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Deadlines & Reminders</h3>
+
+          <div class="space-y-6">
+            <div v-for="doc in documents" :key="doc.name" class="border rounded-lg p-4">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-medium">{{ doc.name }}</h4>
+                <span :class="['px-2 py-1 text-xs rounded-full', 
+                  doc.priority === 'high' ? 'bg-red-100 text-red-800' :
+                  doc.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800']">
+                  {{ doc.priority }} priority
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                  <input type="date" v-model="doc.dueDate"
+                    class="block w-full rounded-md border-gray-300 text-sm">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Reminder Schedule
+                  </label>
+                  <select v-model="doc.reminder" class="block w-full rounded-md border-gray-300 text-sm">
+                    <option value="1w">1 week before</option>
+                    <option value="3d">3 days before</option>
+                    <option value="1d">1 day before</option>
+                  </select>
+                </div>
+
+                <div class="col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Priority Level
+                  </label>
+                  <div class="flex gap-4">
+                    <label class="inline-flex items-center">
+                      <input type="radio" v-model="doc.priority" value="high"
+                        class="text-red-600 border-gray-300 focus:ring-red-500">
+                      <span class="ml-2 text-sm text-gray-700">High</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="radio" v-model="doc.priority" value="medium"
+                        class="text-yellow-600 border-gray-300 focus:ring-yellow-500">
+                      <span class="ml-2 text-sm text-gray-700">Medium</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="radio" v-model="doc.priority" value="low"
+                        class="text-green-600 border-gray-300 focus:ring-green-500">
+                      <span class="ml-2 text-sm text-gray-700">Low</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Tracking -->
+      <div v-if="currentStep === 3" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-medium">Status Configuration</h3>
+            <button class="text-sm text-yellow-600 hover:text-yellow-800">
+              + Add Custom Status
+            </button>
+          </div>
+
+          <!-- Status Flow -->
+          <div class="flex items-center gap-4 mb-8">
+            <div v-for="status in statuses" :key="status.name"
+              class="flex-1 p-4 border rounded-lg text-center">
+              <div class="inline-flex items-center justify-center w-8 h-8 rounded-full mb-2"
+                :class="status.bgColor">
+                <span class="material-icons text-sm">{{ status.icon }}</span>
+              </div>
+              <div class="font-medium text-sm">{{ status.name }}</div>
+              <p class="text-xs text-gray-600">{{ status.description }}</p>
+            </div>
+            <div class="text-gray-400">
+              <span class="material-icons">chevron_right</span>
+            </div>
+          </div>
+
+          <!-- Automated Updates -->
+          <div class="space-y-4">
+            <h4 class="text-sm font-medium text-gray-700">Automated Status Updates</h4>
+            <div v-for="automation in automations" :key="automation.trigger"
+              class="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <div class="font-medium text-sm">{{ automation.name }}</div>
+                <p class="text-xs text-gray-600">{{ automation.description }}</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" v-model="automation.enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div v-if="currentStep === 4" class="space-y-6">
+        <div class="bg-white rounded-lg border">
+          <!-- Header with View Toggles -->
+          <div class="border-b px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-medium">Document Tracking Preview</h3>
+              <div class="flex items-center gap-2">
+                <button v-for="view in views" :key="view.name"
+                  class="px-3 py-1.5 text-sm rounded-md"
+                  :class="currentView === view.name ? 'bg-yellow-100 text-yellow-800' : 'text-gray-600 hover:bg-gray-100'"
+                  @click="currentView = view.name">
+                  <span class="material-icons text-sm mr-1">{{ view.icon }}</span>
+                  {{ view.name }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Content -->
+          <div class="p-6">
+            <!-- Checklist View -->
+            <div v-if="currentView === 'Checklist'" class="space-y-4">
+              <!-- Progress Overview -->
+              <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="text-sm text-gray-600">Overall Progress</div>
+                  <div class="text-sm font-medium">7/10 Documents</div>
+                </div>
+                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-yellow-600 rounded-full" style="width: 70%"></div>
+                </div>
+              </div>
+
+              <!-- Document List -->
+              <div class="border rounded-lg divide-y">
+                <div v-for="doc in documents" :key="doc.name"
+                  class="flex items-center gap-4 p-4 hover:bg-gray-50">
+                  <div class="flex-1">
+                    <div class="font-medium">{{ doc.name }}</div>
+                    <div class="text-sm text-gray-600">Due {{ doc.dueDate }}</div>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <div class="text-sm text-gray-600">{{ doc.provider }}</div>
+                    <span :class="['px-2 py-1 text-xs rounded-full', 
+                      doc.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      doc.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800']">
+                      {{ doc.status }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kanban View -->
+            <div v-if="currentView === 'Kanban'" class="grid grid-cols-4 gap-4">
+              <div v-for="status in statuses" :key="status.name" class="space-y-4">
+                <div class="text-sm font-medium flex items-center gap-2">
+                  <span>{{ status.name }}</span>
+                  <span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">
+                    {{ documents.filter(d => d.status === status.name.toLowerCase()).length }}
+                  </span>
+                </div>
+                <div class="space-y-2">
+                  <div v-for="doc in documents.filter(d => d.status === status.name.toLowerCase())"
+                    :key="doc.name"
+                    class="p-3 bg-white rounded-lg border shadow-sm">
+                    <div class="font-medium text-sm">{{ doc.name }}</div>
+                    <div class="text-xs text-gray-600 mt-1">Due {{ doc.dueDate }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline View -->
+            <div v-if="currentView === 'Timeline'" class="relative">
+              <div class="absolute left-8 top-0 bottom-0 w-px bg-gray-200"></div>
+              <div class="space-y-8">
+                <div v-for="doc in documents" :key="doc.name" class="relative pl-16">
+                  <div class="absolute left-7 w-3 h-3 rounded-full bg-yellow-600 ring-4 ring-white"></div>
+                  <div class="bg-white rounded-lg border p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="font-medium">{{ doc.name }}</div>
+                      <div class="text-sm text-gray-600">Due {{ doc.dueDate }}</div>
+                    </div>
+                    <div class="text-sm text-gray-600">{{ doc.provider }}</div>
+                    <div class="mt-2 flex items-center gap-2">
+                      <span class="material-icons text-sm text-gray-400">notifications</span>
+                      <span class="text-xs text-gray-600">Reminder set for {{ doc.reminder }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="fixed bottom-0 inset-x-0 bg-white border-t">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between">
+        <button @click="prevStep"
+          :disabled="currentStep === 0"
+          class="px-4 py-2 text-sm font-medium rounded-md"
+          :class="currentStep === 0 ? 'text-gray-300' : 'text-gray-700 hover:text-gray-900'">
+          Back
+        </button>
+        <div>
+          <button v-if="currentStep === steps.length - 1"
+            @click="saveConfig"
+            class="inline-flex justify-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">
+            Save Configuration
+          </button>
+          <button v-else
+            @click="nextStep"
+            class="inline-flex justify-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500">
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          currentStep: 0,
+          currentView: 'Checklist',
+          steps: [
+            { id: 1, name: 'Define Checklist' },
+            { id: 2, name: 'Assign Roles' },
+            { id: 3, name: 'Set Deadlines' },
+            { id: 4, name: 'Status Setup' },
+            { id: 5, name: 'Preview' }
+          ],
+          views: [
+            { name: 'Checklist', icon: 'checklist' },
+            { name: 'Kanban', icon: 'view_kanban' },
+            { name: 'Timeline', icon: 'timeline' }
+          ],
+          templates: [
+            {
+              name: 'Construction Project Startup',
+              icon: 'construction',
+              count: 12
+            },
+            {
+              name: 'Vendor Onboarding',
+              icon: 'business',
+              count: 8
+            },
+            {
+              name: 'Project Compliance',
+              icon: 'gavel',
+              count: 15
+            }
+          ],
+          selectedTemplate: '',
+          documents: [
+            {
+              name: 'Insurance Certificate',
+              description: 'Proof of liability coverage',
+              category: 'insurance',
+              provider: 'vendor',
+              reviewer: 'admin',
+              dueDate: '2024-02-15',
+              reminder: '1w',
+              priority: 'high',
+              status: 'pending'
+            },
+            {
+              name: 'Signed Contract',
+              description: 'Executed agreement',
+              category: 'contract',
+              provider: 'internal',
+              reviewer: 'legal',
+              dueDate: '2024-02-01',
+              reminder: '3d',
+              priority: 'high',
+              status: 'approved'
+            }
+          ],
+          statuses: [
+            {
+              name: 'Pending',
+              icon: 'hourglass_empty',
+              bgColor: 'bg-gray-100',
+              description: 'Not yet submitted'
+            },
+            {
+              name: 'Submitted',
+              icon: 'upload_file',
+              bgColor: 'bg-blue-100',
+              description: 'Awaiting review'
+            },
+            {
+              name: 'In Review',
+              icon: 'rate_review',
+              bgColor: 'bg-yellow-100',
+              description: 'Under evaluation'
+            },
+            {
+              name: 'Approved',
+              icon: 'check_circle',
+              bgColor: 'bg-green-100',
+              description: 'Fully approved'
+            }
+          ],
+          automations: [
+            {
+              name: 'Email on Submission',
+              trigger: 'submission',
+              description: 'Notify reviewers when documents are submitted',
+              enabled: true
+            },
+            {
+              name: 'Status Update Notifications',
+              trigger: 'status_change',
+              description: 'Alert stakeholders when document status changes',
+              enabled: true
+            },
+            {
+              name: 'Deadline Reminders',
+              trigger: 'deadline',
+              description: 'Send reminder emails before due dates',
+              enabled: true
+            }
+          ]
+        }
+      },
+      methods: {
+        selectTemplate(template) {
+          this.selectedTemplate = template
+        },
+        addDocument() {
+          this.documents.push({
+            name: '',
+            description: '',
+            category: 'other',
+            provider: 'internal',
+            reviewer: 'admin',
+            dueDate: '',
+            reminder: '1w',
+            priority: 'medium',
+            status: 'pending'
+          })
+        },
+        removeDocument(index) {
+          this.documents.splice(index, 1)
+        },
+        nextStep() {
+          if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++
+          }
+        },
+        prevStep() {
+          if (this.currentStep > 0) {
+            this.currentStep--
+          }
+        },
+        saveConfig() {
+          // Save configuration and redirect back to toolbox
+          window.location.href = 'toolbox.html'
+        }
+      }
+    }).mount('#app')
+  </script>
 </body>
 </html>

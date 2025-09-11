@@ -26,16 +26,428 @@
     </div>
   </header>
 
-  <!-- Coming Soon Content -->
-  <div class="max-w-5xl mx-auto px-6 py-12 text-center">
-    <div class="bg-white rounded-lg border p-12">
-      <span class="material-icons text-6xl text-gray-400 mb-4">construction</span>
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
-      <p class="text-gray-600 mb-8">We're working hard to bring you the Form Population configuration interface.</p>
-      <a href="toolbox.html" class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500">
-        Return to Toolbox
-      </a>
+  <div id="app">
+    <!-- Steps Progress -->
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="flex justify-between items-center">
+        <template v-for="(step, index) in steps" :key="step.id">
+          <button class="flex flex-col items-center relative"
+            :class="[currentStep >= index ? 'text-purple-600' : 'text-gray-400']"
+            @click="currentStep = index">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-semibold"
+              :class="[
+                currentStep > index ? 'bg-purple-600 border-purple-600 text-white' :
+                currentStep === index ? 'border-purple-600 text-purple-600' :
+                'border-gray-300'
+              ]">
+              <span v-if="currentStep > index" class="material-icons text-sm">check</span>
+              <span v-else>{{ index + 1 }}</span>
+            </div>
+            <span class="text-sm mt-2">{{ step.name }}</span>
+          </button>
+          <div v-if="index < steps.length - 1" class="flex-1 mx-4">
+            <div class="h-0.5 relative">
+              <div class="absolute inset-0 bg-gray-200"></div>
+              <div class="absolute inset-0 bg-purple-600 transition-all duration-300"
+                :style="{ width: currentStep > index ? '100%' : '0%' }">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="max-w-5xl mx-auto px-6 pb-20">
+      <!-- Choose Template -->
+      <div v-if="currentStep === 0" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Select Form Template</h3>
+          
+          <!-- Upload Form -->
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-8">
+            <span class="material-icons text-4xl text-gray-400 mb-2">upload_file</span>
+            <p class="text-sm text-gray-600 mb-2">Upload your form (PDF, Word, or Web Form)</p>
+            <button class="text-sm text-purple-600 font-medium">Browse Files</button>
+          </div>
+
+          <!-- Template Library -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 mb-4">Or choose from template library:</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <button v-for="template in templates" :key="template.name"
+                class="flex items-center gap-4 p-4 border rounded-lg"
+                :class="selectedTemplate === template.name ? 'border-purple-600 bg-purple-50' : 'border-gray-200'"
+                @click="selectTemplate(template.name)">
+                <span class="material-icons text-2xl" :class="template.color">{{ template.icon }}</span>
+                <div class="text-left">
+                  <div class="font-medium">{{ template.name }}</div>
+                  <p class="text-sm text-gray-600">{{ template.description }}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Fields -->
+      <div v-if="currentStep === 1" class="space-y-6">
+        <div class="bg-white rounded-lg border">
+          <div class="border-b px-6 py-4 flex items-center justify-between">
+            <h3 class="font-medium">Map Form Fields</h3>
+            <div class="flex items-center gap-2">
+              <button class="text-sm text-purple-600 hover:text-purple-800">Auto-Detect Fields</button>
+              <button class="text-sm text-purple-600 hover:text-purple-800">+ Add Field</button>
+            </div>
+          </div>
+
+          <div class="flex divide-x">
+            <!-- Form Preview -->
+            <div class="flex-1 p-6 bg-gray-50">
+              <div class="bg-white rounded-lg shadow-sm p-8 mx-auto max-w-2xl">
+                <h2 class="text-2xl font-bold mb-6">Work Order</h2>
+                
+                <div class="space-y-6">
+                  <div class="hover:bg-purple-50 p-2 rounded transition-colors cursor-pointer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
+                    <div class="text-sm text-gray-900 border-b border-dashed border-gray-300 py-1">WO-2024-001</div>
+                  </div>
+
+                  <div class="hover:bg-purple-50 p-2 rounded transition-colors cursor-pointer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <div class="text-sm text-gray-900 border-b border-dashed border-gray-300 py-1">Jan 15, 2024</div>
+                  </div>
+
+                  <div class="hover:bg-purple-50 p-2 rounded transition-colors cursor-pointer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                    <div class="text-sm text-gray-900 border-b border-dashed border-gray-300 py-1">Main Street Development</div>
+                  </div>
+
+                  <div class="hover:bg-purple-50 p-2 rounded transition-colors cursor-pointer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project Address</label>
+                    <div class="text-sm text-gray-900 border-b border-dashed border-gray-300 py-1">123 Main Street, Suite 100</div>
+                  </div>
+
+                  <div class="hover:bg-purple-50 p-2 rounded transition-colors cursor-pointer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contractor</label>
+                    <div class="text-sm text-gray-900 border-b border-dashed border-gray-300 py-1">ABC Construction Co.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Field Mapping -->
+            <div class="w-96">
+              <div class="p-4">
+                <div class="space-y-4">
+                  <div v-for="field in formFields" :key="field.name" class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                      <span class="text-xs text-gray-500">{{ field.type }}</span>
+                    </div>
+                    <select v-model="field.source" class="mt-1 block w-full rounded-md border-gray-300 text-sm">
+                      <option value="">Select data source</option>
+                      <option v-for="source in dataSources" :key="source.value" :value="source.value">
+                        {{ source.label }}
+                      </option>
+                    </select>
+                    <div class="mt-2 flex items-center gap-2">
+                      <span class="text-xs text-gray-500">Required</span>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" v-model="field.required" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Set Values -->
+      <div v-if="currentStep === 2" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Set Default Values</h3>
+          <div class="space-y-6">
+            <div v-for="field in formFields" :key="field.name" class="border rounded-lg p-4">
+              <div class="flex items-center justify-between mb-4">
+                <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                <select v-model="field.valueType" class="rounded-md border-gray-300 text-sm">
+                  <option value="static">Static Value</option>
+                  <option value="dynamic">Dynamic Value</option>
+                  <option value="empty">Leave Empty</option>
+                </select>
+              </div>
+
+              <div v-if="field.valueType === 'static'" class="mt-2">
+                <input type="text" v-model="field.defaultValue"
+                  class="block w-full rounded-md border-gray-300 text-sm"
+                  :placeholder="'Enter default value for ' + field.label">
+              </div>
+
+              <div v-if="field.valueType === 'dynamic'" class="mt-2">
+                <select v-model="field.dynamicSource" class="block w-full rounded-md border-gray-300 text-sm">
+                  <option value="date">Current Date</option>
+                  <option value="projectId">Project ID</option>
+                  <option value="userInput">User Input</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation -->
+      <div v-if="currentStep === 3" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-medium">Validation Rules</h3>
+            <button @click="addValidation" class="text-sm text-purple-600 hover:text-purple-800">
+              + Add Rule
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="(rule, index) in validationRules" :key="index"
+              class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              <select v-model="rule.field" class="rounded-md border-gray-300 text-sm">
+                <option v-for="field in formFields" :key="field.name" :value="field.name">
+                  {{ field.label }}
+                </option>
+              </select>
+              
+              <select v-model="rule.type" class="rounded-md border-gray-300 text-sm">
+                <option value="required">Required</option>
+                <option value="format">Format Check</option>
+                <option value="length">Length Check</option>
+              </select>
+              
+              <input type="text" v-model="rule.value"
+                class="flex-1 rounded-md border-gray-300 text-sm"
+                :placeholder="getValidationPlaceholder(rule.type)">
+              
+              <button @click="removeValidation(index)" class="text-red-600 hover:text-red-800">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div v-if="currentStep === 4" class="space-y-6">
+        <div class="bg-white rounded-lg border">
+          <div class="border-b px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <h3 class="font-medium">Preview Form</h3>
+              <span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
+                Sample Data
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button class="text-sm text-purple-600 hover:text-purple-800">Test Fill</button>
+              <button class="text-sm text-purple-600 hover:text-purple-800">Export</button>
+            </div>
+          </div>
+
+          <div class="flex divide-x">
+            <!-- Original Form -->
+            <div class="flex-1 p-6">
+              <h4 class="text-sm font-medium mb-4">Original Form</h4>
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="bg-white rounded-lg shadow-sm p-8">
+                  <h2 class="text-2xl font-bold mb-6">Work Order</h2>
+                  <div class="space-y-6">
+                    <div class="border-b border-gray-200 pb-2">
+                      <label class="block text-sm font-medium text-gray-700">Project ID</label>
+                      <div class="text-sm text-gray-400 py-1">_________________</div>
+                    </div>
+
+                    <div class="border-b border-gray-200 pb-2">
+                      <label class="block text-sm font-medium text-gray-700">Date</label>
+                      <div class="text-sm text-gray-400 py-1">_________________</div>
+                    </div>
+
+                    <div class="border-b border-gray-200 pb-2">
+                      <label class="block text-sm font-medium text-gray-700">Project Name</label>
+                      <div class="text-sm text-gray-400 py-1">_________________</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto-filled Form -->
+            <div class="flex-1 p-6">
+              <h4 class="text-sm font-medium mb-4">Auto-filled Form</h4>
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="bg-white rounded-lg shadow-sm p-8">
+                  <h2 class="text-2xl font-bold mb-6">Work Order</h2>
+                  <div class="space-y-6">
+                    <div class="border-b border-gray-200 pb-2">
+                      <label class="block text-sm font-medium text-gray-700">Project ID</label>
+                      <div class="text-sm text-gray-900 py-1 bg-purple-50">WO-2024-001</div>
+                    </div>
+
+                    <div class="border-b border-gray-200 pb-2">
+                      <label class="block text-sm font-medium text-gray-700">Date</label>
+                      <div class="text-sm text-gray-900 py-1 bg-purple-50">Jan 15, 2024</div>
+                    </div>
+
+                    <div class="border-b border-gray-200 pb-2">
+                      <label class="block text-sm font-medium text-gray-700">Project Name</label>
+                      <div class="text-sm text-gray-900 py-1 bg-purple-50">Main Street Development</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="fixed bottom-0 inset-x-0 bg-white border-t">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between">
+        <button @click="prevStep"
+          :disabled="currentStep === 0"
+          class="px-4 py-2 text-sm font-medium rounded-md"
+          :class="currentStep === 0 ? 'text-gray-300' : 'text-gray-700 hover:text-gray-900'">
+          Back
+        </button>
+        <div>
+          <button v-if="currentStep === steps.length - 1"
+            @click="saveConfig"
+            class="inline-flex justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500">
+            Save Configuration
+          </button>
+          <button v-else
+            @click="nextStep"
+            class="inline-flex justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500">
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          currentStep: 0,
+          steps: [
+            { id: 1, name: 'Choose Template' },
+            { id: 2, name: 'Map Fields' },
+            { id: 3, name: 'Set Values' },
+            { id: 4, name: 'Validation' },
+            { id: 5, name: 'Preview' }
+          ],
+          templates: [
+            {
+              name: 'Work Order',
+              icon: 'assignment',
+              color: 'text-blue-600',
+              description: 'Standard work order form with project details'
+            },
+            {
+              name: 'Permit Application',
+              icon: 'gavel',
+              color: 'text-green-600',
+              description: 'City permit application with required fields'
+            },
+            {
+              name: 'Award Letter',
+              icon: 'military_tech',
+              color: 'text-yellow-600',
+              description: 'Project award notification template'
+            },
+            {
+              name: 'Contract Form',
+              icon: 'description',
+              color: 'text-purple-600',
+              description: 'Standard contract template with terms'
+            }
+          ],
+          selectedTemplate: '',
+          formFields: [
+            { 
+              name: 'projectId',
+              label: 'Project ID',
+              type: 'text',
+              required: true,
+              source: '',
+              valueType: 'dynamic',
+              dynamicSource: 'projectId'
+            },
+            {
+              name: 'date',
+              label: 'Date',
+              type: 'date',
+              required: true,
+              source: '',
+              valueType: 'dynamic',
+              dynamicSource: 'date'
+            },
+            {
+              name: 'projectName',
+              label: 'Project Name',
+              type: 'text',
+              required: true,
+              source: '',
+              valueType: 'empty'
+            }
+          ],
+          dataSources: [
+            { value: 'procore', label: 'Procore' },
+            { value: 'manual', label: 'Manual Entry' },
+            { value: 'system', label: 'System Generated' }
+          ],
+          validationRules: []
+        }
+      },
+      methods: {
+        selectTemplate(template) {
+          this.selectedTemplate = template
+        },
+        nextStep() {
+          if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++
+          }
+        },
+        prevStep() {
+          if (this.currentStep > 0) {
+            this.currentStep--
+          }
+        },
+        addValidation() {
+          this.validationRules.push({
+            field: this.formFields[0].name,
+            type: 'required',
+            value: ''
+          })
+        },
+        removeValidation(index) {
+          this.validationRules.splice(index, 1)
+        },
+        getValidationPlaceholder(type) {
+          switch(type) {
+            case 'format': return 'Enter format pattern'
+            case 'length': return 'Enter min/max length'
+            default: return ''
+          }
+        },
+        saveConfig() {
+          // Save configuration and redirect back to toolbox
+          window.location.href = 'toolbox.html'
+        }
+      }
+    }).mount('#app')
+  </script>
 </body>
 </html>

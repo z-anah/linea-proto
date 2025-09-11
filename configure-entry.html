@@ -26,16 +26,445 @@
     </div>
   </header>
 
-  <!-- Coming Soon Content -->
-  <div class="max-w-5xl mx-auto px-6 py-12 text-center">
-    <div class="bg-white rounded-lg border p-12">
-      <span class="material-icons text-6xl text-gray-400 mb-4">construction</span>
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h2>
-      <p class="text-gray-600 mb-8">We're working hard to bring you the System Entry configuration interface.</p>
-      <a href="toolbox.html" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-        Return to Toolbox
-      </a>
+  <div id="app">
+    <!-- Steps Progress -->
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="flex justify-between items-center">
+        <template v-for="(step, index) in steps" :key="step.id">
+          <button class="flex flex-col items-center relative"
+            :class="[currentStep >= index ? 'text-indigo-600' : 'text-gray-400']"
+            @click="currentStep = index">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-semibold"
+              :class="[
+                currentStep > index ? 'bg-indigo-600 border-indigo-600 text-white' :
+                currentStep === index ? 'border-indigo-600 text-indigo-600' :
+                'border-gray-300'
+              ]">
+              <span v-if="currentStep > index" class="material-icons text-sm">check</span>
+              <span v-else>{{ index + 1 }}</span>
+            </div>
+            <span class="text-sm mt-2">{{ step.name }}</span>
+          </button>
+          <div v-if="index < steps.length - 1" class="flex-1 mx-4">
+            <div class="h-0.5 relative">
+              <div class="absolute inset-0 bg-gray-200"></div>
+              <div class="absolute inset-0 bg-indigo-600 transition-all duration-300"
+                :style="{ width: currentStep > index ? '100%' : '0%' }">
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="max-w-5xl mx-auto px-6 pb-20">
+      <!-- Choose Target System -->
+      <div v-if="currentStep === 0" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Select Target System</h3>
+          
+          <div class="grid grid-cols-3 gap-4">
+            <button v-for="system in systems" :key="system.name"
+              class="flex flex-col items-center p-6 border rounded-lg relative"
+              :class="selectedSystem === system.name ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'"
+              @click="selectedSystem = system.name">
+              <span class="material-icons text-2xl mb-2" :class="system.color">{{ system.icon }}</span>
+              <span class="text-sm font-medium">{{ system.name }}</span>
+              <span v-if="system.connected" class="absolute top-2 right-2 text-green-600 material-icons text-sm">check_circle</span>
+            </button>
+          </div>
+
+          <div class="mt-8 pt-6 border-t">
+            <button class="text-sm text-indigo-600 hover:text-indigo-800 inline-flex items-center">
+              <span class="material-icons text-sm mr-1">add</span>
+              Connect New System
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entry Type -->
+      <div v-if="currentStep === 1" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-medium mb-6">Choose Entry Type</h3>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <button v-for="type in entryTypes" :key="type.name"
+              class="flex items-center gap-4 p-4 border rounded-lg"
+              :class="selectedType === type.name ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'"
+              @click="selectedType = type.name">
+              <span class="material-icons text-2xl" :class="type.color">{{ type.icon }}</span>
+              <div class="text-left">
+                <div class="font-medium">{{ type.name }}</div>
+                <p class="text-sm text-gray-600">{{ type.description }}</p>
+              </div>
+            </button>
+          </div>
+
+          <div class="mt-6 pt-6 border-t">
+            <button class="text-sm text-indigo-600 hover:text-indigo-800">
+              + Create Custom Entry Type
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Fields -->
+      <div v-if="currentStep === 2" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-medium">Field Mapping</h3>
+            <button @click="addMapping" class="text-sm text-indigo-600 hover:text-indigo-800">
+              + Add Field
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="(mapping, index) in fieldMappings" :key="index"
+              class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              <!-- Source Field -->
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Source Field</label>
+                <select v-model="mapping.source" class="block w-full rounded-md border-gray-300 text-sm">
+                  <option v-for="field in sourceFields" :key="field.name" :value="field.name">
+                    {{ field.label }}
+                  </option>
+                </select>
+              </div>
+
+              <span class="material-icons text-gray-400">arrow_forward</span>
+
+              <!-- Target Field -->
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">System Field</label>
+                <select v-model="mapping.target" class="block w-full rounded-md border-gray-300 text-sm">
+                  <option v-for="field in systemFields" :key="field.name" :value="field.name">
+                    {{ field.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Transform -->
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Transform</label>
+                <select v-model="mapping.transform" class="block w-full rounded-md border-gray-300 text-sm">
+                  <option value="none">No Transform</option>
+                  <option value="date">Format Date</option>
+                  <option value="currency">Format Currency</option>
+                  <option value="uppercase">To Uppercase</option>
+                </select>
+              </div>
+
+              <button @click="removeMapping(index)" class="text-red-600 hover:text-red-800">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation -->
+      <div v-if="currentStep === 3" class="space-y-6">
+        <div class="bg-white rounded-lg border p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-medium">Validation Rules</h3>
+            <button @click="addValidation" class="text-sm text-indigo-600 hover:text-indigo-800">
+              + Add Rule
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="(rule, index) in validationRules" :key="index"
+              class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              <select v-model="rule.field" class="rounded-md border-gray-300 text-sm">
+                <option v-for="field in systemFields" :key="field.name" :value="field.name">
+                  {{ field.label }}
+                </option>
+              </select>
+
+              <select v-model="rule.type" class="rounded-md border-gray-300 text-sm">
+                <option value="required">Required</option>
+                <option value="format">Format Check</option>
+                <option value="unique">Unique Value</option>
+                <option value="range">Range Check</option>
+              </select>
+
+              <input type="text" v-model="rule.value"
+                class="flex-1 rounded-md border-gray-300 text-sm"
+                :placeholder="getValidationPlaceholder(rule)">
+
+              <button @click="removeValidation(index)" class="text-red-600 hover:text-red-800">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div v-if="currentStep === 4" class="space-y-6">
+        <div class="bg-white rounded-lg border">
+          <div class="border-b px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <h3 class="font-medium">Preview Entry</h3>
+              <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                Ready to Submit
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-sm text-gray-500">Last checked: Just now</span>
+              <button class="text-sm text-indigo-600 hover:text-indigo-800">Validate Again</button>
+            </div>
+          </div>
+
+          <!-- Preview Content -->
+          <div class="p-6">
+            <!-- Sample Data Table -->
+            <div class="border rounded-lg overflow-hidden mb-6">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Field
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Source Value
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      System Field
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Transformed Value
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Invoice Number</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-2024-001</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">invoice_no</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">INV-2024-001</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        Valid
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Amount</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5250.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">amount</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$5,250.00</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        Valid
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Status Summary -->
+            <div class="grid grid-cols-4 gap-4">
+              <div class="border rounded-lg p-4">
+                <div class="text-sm text-gray-500 mb-1">Total Records</div>
+                <div class="text-2xl font-bold text-gray-900">24</div>
+              </div>
+              <div class="border rounded-lg p-4">
+                <div class="text-sm text-gray-500 mb-1">Ready</div>
+                <div class="text-2xl font-bold text-green-600">22</div>
+              </div>
+              <div class="border rounded-lg p-4">
+                <div class="text-sm text-gray-500 mb-1">Warnings</div>
+                <div class="text-2xl font-bold text-yellow-600">2</div>
+              </div>
+              <div class="border rounded-lg p-4">
+                <div class="text-sm text-gray-500 mb-1">Errors</div>
+                <div class="text-2xl font-bold text-red-600">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="fixed bottom-0 inset-x-0 bg-white border-t">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between">
+        <button @click="prevStep"
+          :disabled="currentStep === 0"
+          class="px-4 py-2 text-sm font-medium rounded-md"
+          :class="currentStep === 0 ? 'text-gray-300' : 'text-gray-700 hover:text-gray-900'">
+          Back
+        </button>
+        <div>
+          <button v-if="currentStep === steps.length - 1"
+            @click="saveConfig"
+            class="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            Save Configuration
+          </button>
+          <button v-else
+            @click="nextStep"
+            class="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          currentStep: 0,
+          steps: [
+            { id: 1, name: 'Target System' },
+            { id: 2, name: 'Entry Type' },
+            { id: 3, name: 'Map Fields' },
+            { id: 4, name: 'Validation' },
+            { id: 5, name: 'Preview' }
+          ],
+          systems: [
+            {
+              name: 'Procore',
+              icon: 'architecture',
+              color: 'text-blue-600',
+              connected: true
+            },
+            {
+              name: 'CMIC',
+              icon: 'business',
+              color: 'text-purple-600',
+              connected: true
+            },
+            {
+              name: 'Sage',
+              icon: 'account_balance',
+              color: 'text-green-600',
+              connected: false
+            },
+            {
+              name: 'QBO',
+              icon: 'receipt_long',
+              color: 'text-orange-600',
+              connected: true
+            },
+            {
+              name: 'Custom API',
+              icon: 'api',
+              color: 'text-gray-600',
+              connected: false
+            }
+          ],
+          selectedSystem: '',
+          entryTypes: [
+            {
+              name: 'Invoice Entry',
+              icon: 'receipt',
+              color: 'text-blue-600',
+              description: 'Enter invoice details into the system'
+            },
+            {
+              name: 'Budget Update',
+              icon: 'account_balance_wallet',
+              color: 'text-green-600',
+              description: 'Update budget line items'
+            },
+            {
+              name: 'Vendor Update',
+              icon: 'people',
+              color: 'text-yellow-600',
+              description: 'Update vendor information'
+            },
+            {
+              name: 'Timesheet Entry',
+              icon: 'schedule',
+              color: 'text-purple-600',
+              description: 'Enter timesheet data'
+            }
+          ],
+          selectedType: '',
+          sourceFields: [
+            { name: 'invoice_number', label: 'Invoice Number' },
+            { name: 'amount', label: 'Amount' },
+            { name: 'date', label: 'Date' },
+            { name: 'vendor', label: 'Vendor' }
+          ],
+          systemFields: [
+            { name: 'invoice_no', label: 'Invoice No.' },
+            { name: 'amount', label: 'Amount' },
+            { name: 'invoice_date', label: 'Invoice Date' },
+            { name: 'vendor_name', label: 'Vendor Name' }
+          ],
+          fieldMappings: [
+            {
+              source: 'invoice_number',
+              target: 'invoice_no',
+              transform: 'none'
+            }
+          ],
+          validationRules: [
+            {
+              field: 'amount',
+              type: 'required',
+              value: ''
+            }
+          ]
+        }
+      },
+      methods: {
+        addMapping() {
+          this.fieldMappings.push({
+            source: '',
+            target: '',
+            transform: 'none'
+          })
+        },
+        removeMapping(index) {
+          this.fieldMappings.splice(index, 1)
+        },
+        addValidation() {
+          this.validationRules.push({
+            field: this.systemFields[0].name,
+            type: 'required',
+            value: ''
+          })
+        },
+        removeValidation(index) {
+          this.validationRules.splice(index, 1)
+        },
+        getValidationPlaceholder(rule) {
+          switch(rule.type) {
+            case 'format': return 'Enter format pattern'
+            case 'range': return 'Enter min,max'
+            case 'unique': return 'Field must be unique'
+            default: return ''
+          }
+        },
+        nextStep() {
+          if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++
+          }
+        },
+        prevStep() {
+          if (this.currentStep > 0) {
+            this.currentStep--
+          }
+        },
+        saveConfig() {
+          // Save configuration and redirect back to toolbox
+          window.location.href = 'toolbox.html'
+        }
+      }
+    }).mount('#app')
+  </script>
 </body>
 </html>
