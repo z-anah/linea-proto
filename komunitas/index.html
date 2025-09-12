@@ -101,6 +101,12 @@
       animation-play-state: paused;
     }
 
+    @media (max-width: 768px) {
+      .animate-scroll {
+        animation: scroll 20s linear infinite;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .animate-scroll {
         animation: none;
@@ -203,18 +209,18 @@
           <div class="overflow-x-auto snap-x hide-scrollbar scroll-shadow">
             <div class="flex gap-6 pb-4 animate-scroll">
               <div v-for="(review, idx) in reviews" :key="idx"
-                class="glass p-6 rounded-xl flex-none w-[300px] md:w-[400px] snap-center">
+                class="glass p-4 md:p-6 rounded-xl flex-none w-[260px] md:w-[400px] snap-center hover:scale-[1.02] transition-transform">
                 <div class="flex items-center gap-2 mb-3">
                   <div class="flex text-yellow-500 text-sm">
-                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
-                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
-                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
-                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
-                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[20px] md:text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[20px] md:text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[20px] md:text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[20px] md:text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[20px] md:text-[24px] fill-1">star</i>
                   </div>
-                  <div class="text-sm text-gray-500">{{ review.date }}</div>
+                  <div class="text-xs md:text-sm text-gray-500">{{ review.date }}</div>
                 </div>
-                <p class="text-gray-600">{{ review.text }}</p>
+                <p class="text-sm md:text-base text-gray-600 leading-relaxed">{{ review.text }}</p>
               </div>
               <!-- Empty element for spacing at the end -->
               <div class="flex-none w-6"></div>
