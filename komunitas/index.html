@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jasa Website Komunitas - Vue Pricing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,0"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      color: #111827;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .material-symbols-rounded {
+      font-size: 18px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .fill-1.material-symbols-rounded {
+      font-variation-settings: 'FILL' 1;
+    }
+
+    @keyframes breath {
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.1);
+      }
+
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+      }
+    }
+
+    .breath-animation {
+      animation: breath 3s ease-in-out infinite;
+    }
+
+    .scroll-shadow {
+      background:
+        linear-gradient(to right, white 0%, transparent 2%),
+        linear-gradient(to left, white 0%, transparent 2%);
+      background-position: left center, right center;
+      background-repeat: no-repeat;
+      background-size: 40px 100%;
+      background-attachment: local, local;
+    }
+
+    .snap-x {
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .snap-center {
+      scroll-snap-align: center;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(calc(-400px * 4));
+      }
+    }
+
+    .animate-scroll {
+      animation: scroll 30s linear infinite;
+      will-change: transform;
+    }
+
+    .animate-scroll:hover {
+      animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-scroll {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <section class="min-h-screen flex flex-col justify-center items-center text-center px-6">
+      <h1 class="text-4xl md:text-6xl font-extrabold mb-6 text-blue-600">Website Komunitas Profesional</h1>
+      <p class="text-lg md:text-xl max-w-2xl mb-8 text-gray-700">
+        Saya <span class="font-semibold">Anah</span>, Fullstack Developer.
+        Saya bantu komunitas membangun website modern
+        dengan nuansa <span class="font-semibold text-blue-600">profesional & terpercaya</span>.
+      </p>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <a href="#proses"
+          class="px-6 py-3 rounded-xl glass hover:bg-blue-50 transition font-semibold text-blue-600 inline-flex items-center">
+          <i class="material-icons">route</i>
+          <span>Proses Kerja</span>
+        </a>
+        <a href="#pricing"
+          class="px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-semibold inline-flex items-center">
+          <span> Lihat Paket Harga</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="max-w-5xl mx-auto px-6 py-24">
+      <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+        <!-- Profile Image -->
+        <div class="flex-none">
+          <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-600 shadow-xl">
+            <img
+              src="https://www.upwork.com/profile-portraits/c1m3U8t0q6PAhWJ0hPIU-FWFak87HrI03iE6Y65ZRC15RbgcQm5bt63eA9ZWeMPMih"
+              alt="Anah" class="w-full h-full object-cover" />
+          </div>
+        </div>
+
+        <!-- Profile Info -->
+        <div class="flex-1 text-center md:text-left">
+          <div class="flex flex-wrap items-center gap-3 justify-center md:justify-start">
+            <h2 class="text-2xl font-bold text-gray-800">Zaora Zulmianah A. (Anah)</h2>
+            <div class="flex gap-2">
+              <span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-600 inline-flex items-center gap-1">
+                <i class="material-symbols-rounded text-[14px]">verified</i> Verified
+              </span>
+              <span
+                class="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-600 inline-flex items-center gap-1">
+                <i class="material-symbols-rounded text-[14px]">star</i> Top Rated
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-600 inline-flex items-center gap-1">
+                <i class="material-symbols-rounded text-[14px]">workspace_premium</i> 100% Success
+              </span>
+            </div>
+          </div>
+
+          <p class="text-gray-600 mt-2">Full Stack Developer
+          <p class="text-sm text-gray-500 mt-1">
+            <i class="material-symbols-rounded text-[16px]">location_on</i>
+            Depok, Indonesia
+          </p>
+
+          <div class="flex flex-wrap gap-3 mt-4 justify-center md:justify-start">
+            <div class="px-3 py-2 rounded-lg bg-blue-50 text-blue-600">
+              <div class="text-lg font-bold">$7K+</div>
+              <div class="text-xs">Total Earned</div>
+            </div>
+            <div class="px-3 py-2 rounded-lg bg-green-50 text-green-600">
+              <div class="text-lg font-bold">5.0</div>
+              <div class="text-xs">Rating</div>
+            </div>
+            <div class="px-3 py-2 rounded-lg bg-yellow-50 text-yellow-600">
+              <div class="text-lg font-bold">100%</div>
+              <div class="text-xs">Job Success</div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-2 justify-center md:justify-start">
+            <span v-for="skill in specialization" class="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600">
+              {{ skill }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews from Upwork -->
+      <div class="mt-12">
+        <div class="flex items-center justify-center gap-2 mb-6">
+          <h3 class="text-xl font-semibold text-center">Client Reviews</h3>
+          <a href="https://www.upwork.com/freelancers/~01ad3a0aab166d031d" target="_blank"
+            class="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-700">
+            <i class="material-symbols-rounded text-[14px]">verified</i>
+            <span>from Upwork</span>
+          </a>
+        </div>
+        <div class="relative">
+          <div class="overflow-x-auto snap-x hide-scrollbar scroll-shadow">
+            <div class="flex gap-6 pb-4 animate-scroll">
+              <div v-for="(review, idx) in reviews" :key="idx"
+                class="glass p-6 rounded-xl flex-none w-[300px] md:w-[400px] snap-center">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="flex text-yellow-500 text-sm">
+                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
+                    <i class="material-symbols-rounded text-[24px] fill-1">star</i>
+                  </div>
+                  <div class="text-sm text-gray-500">{{ review.date }}</div>
+                </div>
+                <p class="text-gray-600">{{ review.text }}</p>
+              </div>
+              <!-- Empty element for spacing at the end -->
+              <div class="flex-none w-6"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="proses" class="max-w-4xl mx-auto px-6 py-24">
+      <div class="text-center mb-20">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-blue-600">Proses Kerja</h2>
+        <p class="text-gray-600 mt-2">Langkah-langkah sederhana dari konsultasi hingga live</p>
+      </div>
+
+      <div class="relative">
+        <!-- Vertical line -->
+        <div class="absolute left-[21px] top-3 bottom-3 w-[3px] bg-blue-100"></div>
+
+        <div class="space-y-12">
+          <div v-for="(step, idx) in processSteps" :key="idx" class="relative flex gap-8 items-start group">
+            <!-- Circle with number -->
+            <div
+              class="flex-none z-10 w-12 h-12 rounded-full bg-white border-[3px] border-blue-600 text-blue-600 flex items-center justify-center font-bold text-lg group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+              {{ idx+1 }}
+            </div>
+            <!-- Content -->
+            <div
+              class="flex-1 glass p-8 rounded-2xl group-hover:border-blue-200 group-hover:shadow-xl group-hover:scale-[1.02] transition-all duration-300">
+              <div class="flex items-center gap-3">
+                <span class="material-icons text-blue-600">{{ step.icon }}</span>
+                <div>
+                  <div class="text-lg font-semibold text-gray-800">{{ step.title }}</div>
+                  <div class="text-sm text-gray-600 mt-1">{{ step.desc }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="max-w-6xl mx-auto px-6 py-20">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-blue-600">Paket Website Komunitas</h2>
+        <p class="text-gray-600 mt-2">Dari basic hingga enterprise</p>
+      </div>
+      <div class="grid gap-8 md:grid-cols-3">
+        <div v-for="plan in plans" :key="plan.name" class="glass rounded-2xl p-8 flex flex-col shadow-lg"
+          :class="plan.recommended ? 'border-2 border-blue-600 shadow-xl scale-105' : ''">
+          <span v-if="plan.recommended"
+            class="self-end text-xs bg-blue-600 text-white px-3 py-1 rounded-full mb-2">Recommended</span>
+          <h3 class="text-2xl font-bold mb-2 text-blue-600">{{ plan.name }}</h3>
+          <p class="text-gray-600">{{ plan.desc }}</p>
+          <div class="mt-4 text-3xl font-extrabold" :class="plan.recommended ? 'text-blue-600' : 'text-gray-800'">{{
+            plan.price }}</div>
+          <ul class="mt-6 space-y-3 text-sm text-gray-800 flex-1">
+            <li v-for="feature in plan.features" :key="feature.text">
+              <span class="material-icons">{{ feature.icon }}</span> {{ feature.text }}
+            </li>
+          </ul>
+          <div class="mt-6 flex gap-3">
+            <button @click="choosePlan(plan)" class="flex-1 px-4 py-2 rounded-lg transition"
+              :class="plan.recommended ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600'">
+              Pilih Paket
+            </button>
+            <button @click="showDetail(plan)"
+              class="flex-1 px-4 py-2 rounded-lg border border-blue-500 text-blue-600 hover:bg-blue-50 transition">
+              Detail
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16 text-center">
+        <button @click="showComparison = !showComparison"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-orange-600 text-orange-600 hover:bg-orange-50 transition font-semibold group breath-animation">
+          <i class="material-icons transition-transform duration-300 group-hover:rotate-180">{{ showComparison ?
+            'unfold_less' : 'unfold_more' }}</i>
+          <span>{{ showComparison ? 'Sembunyikan' : 'Tampilkan' }} Perbandingan Fitur</span>
+        </button>
+
+        <!-- Comparison Table -->
+        <div v-if="showComparison" class="mt-12 overflow-x-auto">
+          <table class="w-full min-w-[800px] text-left">
+            <thead>
+              <tr class="border-b-2">
+                <th class="py-4 px-6 text-gray-600">Fitur</th>
+                <th class="py-4 px-6 text-blue-600">Basic</th>
+                <th class="py-4 px-6 text-blue-600">Pro</th>
+                <th class="py-4 px-6 text-blue-600">Business</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="feature in compareFeatures" :key="feature.feature" class="border-b hover:bg-slate-50">
+                <td class="py-4 px-6 font-medium">{{ feature.feature }}</td>
+                <td class="py-4 px-6">
+                  <span v-if="typeof feature.basic === 'boolean'">
+                    <i class="material-icons" :class="feature.basic ? 'text-green-600' : 'text-red-600'">
+                      {{ feature.basic ? 'check_circle' : 'cancel' }}
+                    </i>
+                  </span>
+                  <span v-else>{{ feature.basic }}</span>
+                </td>
+                <td class="py-4 px-6">
+                  <span v-if="typeof feature.pro === 'boolean'">
+                    <i class="material-icons" :class="feature.pro ? 'text-green-600' : 'text-red-600'">
+                      {{ feature.pro ? 'check_circle' : 'cancel' }}
+                    </i>
+                  </span>
+                  <span v-else>{{ feature.pro }}</span>
+                </td>
+                <td class="py-4 px-6">
+                  <span v-if="typeof feature.business === 'boolean'">
+                    <i class="material-icons" :class="feature.business ? 'text-green-600' : 'text-red-600'">
+                      {{ feature.business ? 'check_circle' : 'cancel' }}
+                    </i>
+                  </span>
+                  <span v-else>{{ feature.business }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div v-if="selectedPlan" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-lg">
+        <h3 class="text-2xl font-bold mb-4 text-blue-600">Detail {{ selectedPlan.name }}</h3>
+        <ul class="list-disc pl-6 space-y-2 text-gray-700">
+          <li v-for="item in selectedPlan.detail" :key="item">{{ item }}</li>
+        </ul>
+        <div class="mt-6 text-right">
+          <button @click="selectedPlan=null"
+            class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="chosenPlan" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-lg">
+        <h3 class="text-2xl font-bold mb-4 text-blue-600">Konfirmasi Paket</h3>
+        <p class="text-gray-700 mb-4">Kamu memilih paket <span class="font-semibold">{{ chosenPlan.name }}</span> dengan
+          harga <span class="font-semibold">{{ chosenPlan.price }}</span>.</p>
+        <p class="text-gray-700 mb-6">Pesan yang akan dikirim ke WhatsApp:</p>
+        <div class="bg-gray-100 p-4 rounded-lg text-sm text-left text-gray-800 mb-6 whitespace-pre-line">
+          {{ waMessage }}
+        </div>
+        <div class="flex justify-end gap-3">
+          <button @click="chosenPlan=null"
+            class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition">Batal</button>
+          <a :href="waLink" target="_blank"
+            class="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition inline-flex items-center">
+            <i class="fab fa-whatsapp mr-2"></i> Kirim via WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <section class="max-w-3xl mx-auto px-6 py-24">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-blue-600">FAQ</h2>
+        <p class="text-gray-600 mt-2">Pertanyaan yang sering ditanyakan</p>
+      </div>
+
+      <div class="space-y-4">
+        <div v-for="(item, idx) in faqItems" :key="idx" class="glass rounded-xl overflow-hidden">
+          <button @click="activeQuestion = activeQuestion === idx ? null : idx"
+            class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-blue-50/50 transition">
+            <div class="flex items-center gap-3">
+              <i class="material-icons text-blue-600">{{ item.icon }}</i>
+              <span class="font-semibold text-gray-800">{{ item.question }}</span>
+            </div>
+            <i class="material-icons transition-transform duration-300"
+              :class="activeQuestion === idx ? 'rotate-180' : ''">expand_more</i>
+          </button>
+          <div v-show="activeQuestion === idx" class="px-6 py-4 text-gray-600 border-t border-blue-100/50">
+            {{ item.answer }}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="text-center py-20">
+      <h3 class="text-2xl md:text-3xl font-bold mb-6 text-blue-600">Siap bangun website komunitasmu?</h3>
+      <p class="text-gray-600 mb-8">Hubungi saya untuk konsultasi gratis & pilih paket terbaik untukmu.</p>
+      <a :href="`https://wa.me/${waNumber}`" target="_blank"
+        class="px-8 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition inline-flex items-center">
+        <i class="fab fa-whatsapp mr-2"></i> Chat via WhatsApp
+      </a>
+    </section>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return {
+          selectedPlan: null,
+          chosenPlan: null,
+          showComparison: false,
+          activeQuestion: null,
+          waNumber: "6287772897512",
+          specialization: [
+            "Frontend Development",
+            "Vue.js, React, Node.js",
+            "Full Stack with Python",
+            "UI/UX Integration",
+            "Bug Fixes & Maintenance",
+            "Artificial Intelligence"
+          ],
+          reviews: [
+            {
+              rating: 5.0,
+              date: "Feb 10, 2025 - Present",
+              text: "Working with Anah has been an absolute pleasure. They consistently demonstrate true ownership over their tasks, delivering great, solid work that consistently meets and exceeds expectations..."
+            },
+            {
+              rating: 5.0,
+              date: "Apr 29, 2023 - Feb 6, 2025",
+              text: "Nice work by Anah and Team. Done ✅ Will use her and her team again."
+            },
+            {
+              rating: 5.0,
+              date: "Apr 28, 2023 - May 5, 2023",
+              text: "React native app bug fixes completed successfully."
+            },
+            {
+              rating: 5.0,
+              date: "Mar 1, 2022 - Apr 14, 2022",
+              text: "Anah is a knowledgeable and very hard working developer who went over and beyond expectations."
+            }
+          ],
+          faqItems: [
+            {
+              question: "Apa itu website komunitas?",
+              answer: "Website komunitas adalah platform online untuk menghubungkan anggota, berbagi informasi, event, dan membangun interaksi dalam komunitas.",
+              icon: "groups"
+            },
+            {
+              question: "Berapa lama proses pembuatan website?",
+              answer: "Waktu pengerjaan tergantung paket. Basic sekitar 1-2 minggu, Pro 3-4 minggu, dan Business bisa 1-2 bulan.",
+              icon: "schedule"
+            },
+            {
+              question: "Apakah sudah termasuk domain dan hosting?",
+              answer: "Paket Basic bersifat opsional, sedangkan Pro dan Business biasanya sudah termasuk setup domain + hosting dasar.",
+              icon: "cloud"
+            },
+            {
+              question: "Apakah bisa request fitur khusus?",
+              answer: "Ya, semua paket bisa ditambah fitur custom sesuai kebutuhan dengan biaya tambahan.",
+              icon: "add_circle"
+            },
+            {
+              question: "Apakah ada support setelah website selesai?",
+              answer: "Ya, tersedia support dan maintenance setelah launch, tergantung paket yang dipilih.",
+              icon: "support_agent"
+            },
+            {
+              question: "Apakah bisa upgrade paket?",
+              answer: "Bisa, Anda dapat mulai dari Basic dan upgrade ke Pro atau Business sesuai perkembangan komunitas.",
+              icon: "upgrade"
+            },
+            {
+              question: "Berapa DP yang harus dibayar di awal?",
+              answer: "Klien perlu membayar DP sebesar 50% dari total harga paket sebagai tanda jadi. Sisanya dilunasi setelah website selesai dan siap di-launch.",
+              icon: "payment"
+            }
+          ],
+          compareFeatures: [
+            { feature: "Price Range", basic: "Rp1 – 1,5 Jt", pro: "Rp6 – 10 Jt", business: "Rp12 – 20 Jt" },
+            { feature: "Landing Page", basic: true, pro: true, business: true },
+            { feature: "Custom Design (UI/UX)", basic: false, pro: true, business: true },
+            { feature: "Micro Animation", basic: false, pro: true, business: true },
+            { feature: "Member Registration / Login", basic: false, pro: true, business: true },
+            { feature: "Dashboard for Members", basic: false, pro: true, business: true },
+            { feature: "Database Integration", basic: false, pro: "Firebase / Supabase", business: "Full-stack DB (Node/Python)" },
+            { feature: "Posting & Comments", basic: false, pro: false, business: true },
+            { feature: "Events Feature", basic: false, pro: false, business: true },
+            { feature: "Admin / Moderator Roles", basic: false, pro: false, business: true },
+            { feature: "Email Notifications", basic: false, pro: false, business: true },
+            { feature: "Security", basic: "Basic SSL (optional)", pro: "Standard (Firebase rules)", business: "Advanced basic security" },
+            { feature: "Hosting & Domain", basic: "Optional", pro: "Included (basic setup)", business: "Included + scaling ready" },
+            { feature: "Suitable For", basic: "Small community", pro: "Medium, growing community", business: "Large/active community" }
+          ],
+          processSteps: [
+            { title: "Konsultasi Awal", desc: "Diskusi kebutuhan, tujuan, dan anggaran", icon: "handshake" },
+            { title: "Proposal & Penawaran", desc: "Rincian fitur, timeline, dan biaya", icon: "description" },
+            { title: "Desain UI/UX", desc: "Wireframe dan mockup, sesi revisi", icon: "palette" },
+            { title: "Development", desc: "Implementasi frontend & backend", icon: "code" },
+            { title: "Testing & QA", desc: "Uji fungsional, perbaikan, dan validasi", icon: "bug_report" },
+            { title: "Launch & Support", desc: "Deploy, training, dan dukungan pasca-launch", icon: "rocket_launch" }
+          ],
+          plans: [
+            {
+              name: "Basic",
+              desc: "Mulai online dengan sederhana",
+              price: "Rp1 – 1,5 Jt",
+              recommended: false,
+              features: [
+                { icon: "web", text: "Landing page komunitas" },
+                { icon: "palette", text: "Template HTML + Tailwind" },
+                { icon: "assignment", text: "Form pendaftaran" },
+                { icon: "cloud", text: "Hosting & domain opsional" },
+              ],
+              detail: [
+                "Landing page sederhana untuk menampilkan informasi komunitas",
+                "Formulir pendaftaran anggota terhubung ke email",
+                "Desain responsif menggunakan Tailwind",
+                "Hosting & domain opsional sesuai kebutuhan",
+                "Cocok untuk komunitas kecil atau percobaan awal"
+              ]
+            },
+            {
+              name: "Pro",
+              desc: "Website custom interaktif",
+              price: "Rp6 – 10 Jt",
+              recommended: true,
+              features: [
+                { icon: "brush", text: "UI/UX modern + animasi" },
+                { icon: "code", text: "Custom HTML + Tailwind + Vue" },
+                { icon: "login", text: "Login anggota + database" },
+                { icon: "dashboard", text: "Dashboard interaktif" },
+                { icon: "cloud_done", text: "Integrasi Firebase / Supabase" },
+              ],
+              detail: [
+                "Desain custom dengan micro-animasi untuk pengalaman interaktif",
+                "Login dan registrasi anggota terintegrasi dengan database",
+                "Dashboard untuk mengelola anggota dan konten",
+                "Integrasi cloud database (Firebase atau Supabase)",
+                "Cocok untuk komunitas menengah yang ingin tampil profesional"
+              ]
+            },
+            {
+              name: "Business",
+              desc: "Aplikasi komunitas lengkap",
+              price: "Rp12 – 20 Jt",
+              recommended: false,
+              features: [
+                { icon: "apps", text: "Full-stack (Vue + Node/Python)" },
+                { icon: "chat", text: "Posting, komentar, event" },
+                { icon: "supervisor_account", text: "Role admin & moderator" },
+                { icon: "email", text: "Email notifikasi" },
+                { icon: "security", text: "Keamanan dasar" },
+              ],
+              detail: [
+                "Aplikasi full-stack dengan backend Node.js atau Python",
+                "Fitur posting, komentar, dan event untuk interaksi anggota",
+                "Sistem role admin dan moderator",
+                "Notifikasi email untuk aktivitas penting",
+                "Sistem keamanan dasar untuk perlindungan data",
+                "Cocok untuk komunitas besar dengan banyak anggota"
+              ]
+            }
+          ]
+        }
+      },
+      computed: {
+        waMessage() {
+          if (!this.chosenPlan) return "";
+          return `Halo Anah,\nSaya tertarik dengan paket ${this.chosenPlan.name} (${this.chosenPlan.price}).\nMohon info lebih lanjut.`;
+        },
+        waLink() {
+          return `https://wa.me/${this.waNumber}?text=${encodeURIComponent(this.waMessage)}`;
+        }
+      },
+      methods: {
+        showDetail(plan) {
+          this.selectedPlan = plan;
+        },
+        choosePlan(plan) {
+          this.chosenPlan = plan;
+        }
+      }
+    }).mount("#app");
+  </script>
+</body>
+
+</html>
