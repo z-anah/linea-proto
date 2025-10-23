@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frequency Trigger Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+  <div id="app" class="max-w-5xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center text-indigo-700">Frequency Triggers Dashboard</h1>
+
+    <div v-for="(category, index) in data" :key="index" class="mb-6">
+      <div @click="category.open = !category.open"
+        class="flex justify-between items-center bg-indigo-100 hover:bg-indigo-200 cursor-pointer rounded-lg px-4 py-3">
+        <h2 class="text-xl font-semibold text-indigo-800">{{ category.name }}</h2>
+        <svg :class="{ 'rotate-180': category.open }"
+          class="w-6 h-6 transform transition-transform duration-300 text-indigo-600" fill="none" stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      <transition name="fade">
+        <div v-show="category.open" class="mt-3 space-y-4">
+          <div v-for="trigger in category.triggers" :key="trigger.id"
+            class="bg-white shadow-sm rounded-lg p-4 border border-gray-200 hover:shadow-md transition">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-lg font-semibold text-gray-900">
+                {{ trigger.id.toUpperCase() }}
+              </h3>
+              <span class="text-xs px-2 py-1 rounded-full font-medium" :class="{
+                  'bg-green-100 text-green-800': trigger.tone === 'friendly',
+                  'bg-yellow-100 text-yellow-800': trigger.tone === 'neutral',
+                  'bg-red-100 text-red-800': trigger.tone === 'urgent'
+                }">
+                {{ trigger.tone }}
+              </span>
+            </div>
+
+            <p class="text-gray-700 mb-2 italic">"{{ trigger.messageTemplate }}"</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              <div class="bg-gray-50 p-2 rounded border">
+                <span class="font-semibold text-gray-600 block">Unit</span>
+                {{ trigger.cadence.unit }}
+              </div>
+              <div class="bg-gray-50 p-2 rounded border">
+                <span class="font-semibold text-gray-600 block">Frequency</span>
+                Every {{ trigger.cadence.frequency }} {{ trigger.cadence.unit }}(s)
+              </div>
+              <div class="bg-gray-50 p-2 rounded border">
+                <span class="font-semibold text-gray-600 block">Business Days Only</span>
+                {{ trigger.cadence.businessDaysOnly ? 'Yes' : 'No' }}
+              </div>
+              <div class="bg-gray-50 p-2 rounded border">
+                <span class="font-semibold text-gray-600 block">Days Before Due (Min)</span>
+                {{ trigger.daysBeforeDueRange.min ?? 'N/A' }}
+              </div>
+              <div class="bg-gray-50 p-2 rounded border">
+                <span class="font-semibold text-gray-600 block">Days Before Due (Max)</span>
+                {{ trigger.daysBeforeDueRange.max ?? 'N/A' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          data: [
+            {
+              name: "Weekly",
+              open: true,
+              triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 5, businessDaysOnly: true },
+                  messageTemplate: "Hi! Just a friendly reminder about {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: null }
+                }
+              ]
+            },
+            {
+              name: "Expense Follow-Up",
+              open: false,
+              triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 2, businessDaysOnly: true },
+                  messageTemplate: "Hi! Just a friendly reminder about {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: 8 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "urgent",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: true },
+                  messageTemplate: "URGENT: {{subject}} is due within a week. Address this soon.",
+                  daysBeforeDueRange: { max: 7, min: 0 }
+                }
+              ]
+            },
+            {
+              name: "Project Deadline",
+              open: false,
+              triggers: [
+                {
+                  id: "tier-1",
+                  tone: "neutral",
+                  cadence: { unit: "day", frequency: 3, businessDaysOnly: false },
+                  messageTemplate: "Reminder: Project '{{subject}}' is progressing.",
+                  daysBeforeDueRange: { max: null, min: 10 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "urgent",
+                  cadence: { unit: "hour", frequency: 12, businessDaysOnly: false },
+                  messageTemplate: "Final hours to complete '{{subject}}'! Please review.",
+                  daysBeforeDueRange: { max: 1, min: 0 }
+                }
+              ]
+            },
+            {
+              name: "Subscription Renewal",
+              open: false,
+              triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 7, businessDaysOnly: true },
+                  messageTemplate: "Your subscription for {{subject}} renews soon!",
+                  daysBeforeDueRange: { max: 14, min: 7 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "neutral",
+                  cadence: { unit: "day", frequency: 3, businessDaysOnly: false },
+                  messageTemplate: "Reminder: {{subject}} renews soon.",
+                  daysBeforeDueRange: { max: 6, min: 1 }
+                },
+                {
+                  id: "tier-3",
+                  tone: "urgent",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: false },
+                  messageTemplate: "Your {{subject}} renewal is due today!",
+                  daysBeforeDueRange: { max: 0, min: 0 }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }).mount('#app');
+  </script>
+
+  <style>
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: all 0.3s ease;
+    }
+
+    .fade-enter-from,
+    .fade-leave-to {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+  </style>
+</body>
+
+</html>

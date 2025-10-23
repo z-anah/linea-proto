@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frequency Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue.js CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+  <div id="app" class="p-6 max-w-6xl mx-auto w-full">
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-semibold text-gray-900">📊 Frequency Dashboard</h1>
+      <input type="text" v-model="search" placeholder="Search category..."
+        class="border border-gray-300 rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+    </header>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-for="(category, name) in filteredData" :key="name"
+        class="bg-white shadow rounded-xl p-5 hover:shadow-lg transition">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-lg text-blue-700">{{ name }}</h2>
+          <span class="text-sm text-gray-500">{{ category.frequency_triggers.length }} Trigger(s)</span>
+        </div>
+
+        <div class="space-y-3">
+          <div v-for="trigger in category.frequency_triggers" :key="trigger.id" class="border-l-4 pl-3" :class="{
+              'border-blue-400 bg-blue-50': trigger.tone === 'friendly',
+              'border-yellow-400 bg-yellow-50': trigger.tone === 'neutral',
+              'border-red-400 bg-red-50': trigger.tone === 'urgent'
+            }">
+            <div class="flex justify-between items-center">
+              <p class="font-semibold capitalize">{{ trigger.tone }} tone</p>
+              <p class="text-sm text-gray-600">Every {{ trigger.cadence.frequency }} {{ trigger.cadence.unit }}(s)</p>
+            </div>
+            <p class="text-sm mt-1 text-gray-700">
+              {{ trigger.messageTemplate }}
+            </p>
+            <div class="mt-2 text-xs text-gray-500 flex gap-2">
+              <span>Business Days: {{ trigger.cadence.businessDaysOnly ? 'Yes' : 'No' }}</span>
+              <span v-if="trigger.daysBeforeDueRange.min !== null">| Min Days: {{ trigger.daysBeforeDueRange.min
+                }}</span>
+              <span v-if="trigger.daysBeforeDueRange.max !== null">| Max Days: {{ trigger.daysBeforeDueRange.max
+                }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+
+    createApp({
+      data() {
+        return {
+          search: '',
+          dashboardData: {
+            "Weekly": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 5, businessDaysOnly: true },
+                  messageTemplate: "Hi! Just a friendly reminder about {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: null }
+                }
+              ]
+            },
+            "Expense Follow-Up": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 2, businessDaysOnly: true },
+                  messageTemplate: "Hi! Just a friendly reminder about {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: 8 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "urgent",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: true },
+                  messageTemplate: "URGENT: {{subject}} is due within a week. Address this soon.",
+                  daysBeforeDueRange: { max: 7, min: 0 }
+                }
+              ]
+            },
+            "Invoice Reminder": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "week", frequency: 1, businessDaysOnly: false },
+                  messageTemplate: "Just checking in about {{subject}}. Let us know if you need more time.",
+                  daysBeforeDueRange: { max: 14, min: 7 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "neutral",
+                  cadence: { unit: "day", frequency: 3, businessDaysOnly: true },
+                  messageTemplate: "Reminder: {{subject}} is approaching due date.",
+                  daysBeforeDueRange: { max: 6, min: 2 }
+                },
+                {
+                  id: "tier-3",
+                  tone: "urgent",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: true },
+                  messageTemplate: "Final notice: {{subject}} is due today!",
+                  daysBeforeDueRange: { max: 1, min: 0 }
+                }
+              ]
+            },
+            "Client Follow-Up": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "week", frequency: 2, businessDaysOnly: false },
+                  messageTemplate: "Hope you're doing well! Following up on {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: null }
+                }
+              ]
+            },
+            "Project Check-In": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "neutral",
+                  cadence: { unit: "week", frequency: 1, businessDaysOnly: true },
+                  messageTemplate: "Quick check-in about {{subject}}. Any updates?",
+                  daysBeforeDueRange: { max: null, min: null }
+                }
+              ]
+            }
+          }
+        }
+      },
+      computed: {
+        filteredData() {
+          const searchTerm = this.search.toLowerCase()
+          if (!searchTerm) return this.dashboardData
+          return Object.fromEntries(
+            Object.entries(this.dashboardData).filter(([key]) =>
+              key.toLowerCase().includes(searchTerm)
+            )
+          )
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+
+</html>

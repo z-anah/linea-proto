@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Frequency Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-6">
+
+  <div id="app" class="w-full max-w-5xl">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">📊 Frequency Dashboard</h1>
+
+    <!-- Category Cards -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <div v-for="(item, name) in data" :key="name" class="bg-white rounded-xl shadow hover:shadow-lg transition p-5">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xl font-semibold text-indigo-600">{{ name }}</h2>
+          <span class="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">{{ item.frequency_triggers.length
+            }} Triggers</span>
+        </div>
+
+        <!-- Frequency Trigger Details -->
+        <div v-for="trigger in item.frequency_triggers" :key="trigger.id" class="border-t border-gray-200 pt-4 mt-4">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-700 font-medium">Tone: <span class="capitalize">{{ trigger.tone }}</span></p>
+              <p class="text-gray-600 text-sm">Cadence: Every {{ trigger.cadence.frequency }} {{ trigger.cadence.unit
+                }}(s)
+                <span v-if="trigger.cadence.businessDaysOnly">(Business Days Only)</span>
+              </p>
+              <p class="text-gray-600 text-sm">Message: <span class="italic text-gray-800">"{{ trigger.messageTemplate
+                  }}"</span></p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-500">Days Before Due:</p>
+              <p class="text-sm font-semibold text-gray-700">
+                <span v-if="trigger.daysBeforeDueRange.min !== null">Min: {{ trigger.daysBeforeDueRange.min }}</span>
+                <span v-else>Min: —</span> |
+                <span v-if="trigger.daysBeforeDueRange.max !== null">Max: {{ trigger.daysBeforeDueRange.max }}</span>
+                <span v-else>Max: —</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const app = Vue.createApp({
+      data() {
+        return {
+          data: {
+            "Weekly": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 5, businessDaysOnly: true },
+                  messageTemplate: "Hi! Just a friendly reminder about {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: null }
+                }
+              ]
+            },
+            "Expense Follow-Up": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 2, businessDaysOnly: true },
+                  messageTemplate: "Hi! Just a friendly reminder about {{subject}}.",
+                  daysBeforeDueRange: { max: null, min: 8 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "urgent",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: true },
+                  messageTemplate: "URGENT: {{subject}} is due within a week. Address this soon.",
+                  daysBeforeDueRange: { max: 7, min: 0 }
+                }
+              ]
+            },
+            "Invoice Reminder": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "professional",
+                  cadence: { unit: "day", frequency: 3, businessDaysOnly: false },
+                  messageTemplate: "Reminder: Your invoice for {{subject}} is pending.",
+                  daysBeforeDueRange: { max: null, min: 10 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "firm",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: false },
+                  messageTemplate: "Please note: {{subject}} is overdue. Immediate attention required.",
+                  daysBeforeDueRange: { max: 9, min: 0 }
+                }
+              ]
+            },
+            "Subscription Renewal": {
+              frequency_triggers: [
+                {
+                  id: "tier-1",
+                  tone: "friendly",
+                  cadence: { unit: "day", frequency: 7, businessDaysOnly: true },
+                  messageTemplate: "Hey there! Don’t forget to renew your {{subject}} subscription soon.",
+                  daysBeforeDueRange: { max: 30, min: 7 }
+                },
+                {
+                  id: "tier-2",
+                  tone: "urgent",
+                  cadence: { unit: "day", frequency: 1, businessDaysOnly: true },
+                  messageTemplate: "Your {{subject}} subscription expires soon! Renew now to avoid interruption.",
+                  daysBeforeDueRange: { max: 6, min: 0 }
+                }
+              ]
+            }
+          }
+        }
+      }
+    });
+
+    app.mount('#app');
+  </script>
+
+</body>
+
+</html>

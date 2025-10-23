@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-900 flex items-center justify-center min-h-screen">
+  <div id="app" class="p-8 w-full max-w-7xl space-y-10">
+    <div class="grid grid-cols-2 gap-8">
+
+      <!-- Weekly -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-center bg-blue-500 text-white font-semibold rounded py-2 mb-6">Weekly</h2>
+        <div class="flex flex-col space-y-4">
+          <div v-for="(item, i) in weekly" :key="i"
+            class="border-l-4 border-blue-500 pl-4 hover:bg-blue-50 transition rounded p-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 uppercase">
+                  {{ i === 0 ? 'Start Date' : (i === weekly.length-1 ? 'Due Date' : 'Follow-up') }}
+                </p>
+                <h3 class="text-lg font-semibold text-blue-700">{{ item.label }}</h3>
+              </div>
+              <div class="text-sm italic text-gray-600">{{ item.desc }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expense Follow-Up -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-center bg-red-500 text-white font-semibold rounded py-2 mb-6">Expense Follow-Up</h2>
+        <div class="flex flex-col space-y-4">
+          <div v-for="(item, i) in expense" :key="i" class="border-l-4 p-2 pl-4 rounded transition"
+            :class="item.urgent ? 'border-red-500 hover:bg-red-100' : 'border-blue-500 hover:bg-blue-50'">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 uppercase">
+                  {{ i === 0 ? 'Start Date' : (item.urgent && i===expense.length-3 ? 'Due Date - 7 days' :
+                  (i===expense.length-1 ? 'Due Date' : 'Follow-up')) }}
+                </p>
+                <h3 class="text-lg font-semibold" :class="item.urgent ? 'text-red-700' : 'text-blue-700'">
+                  {{ item.label }}
+                </h3>
+              </div>
+              <div class="text-sm italic text-gray-600">{{ item.desc }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          weekly: [
+            { label: "Initial", desc: "Every 5 business days" },
+            { label: "Follow-up", desc: "Every 5 business days" },
+            { label: "Follow-up", desc: "Every 5 business days" },
+            { label: "Follow-up", desc: "Every 5 business days" },
+            { label: "Follow-up", desc: "Every 5 business days" }
+          ],
+          expense: [
+            { label: "Initial", desc: "Every 2 business days" },
+            { label: "Follow-up", desc: "Every 2 business days" },
+            { label: "Follow-up", desc: "Every 2 business days" },
+            { label: "Urgent Follow-up", desc: "Every business day", urgent: true },
+            { label: "Urgent Follow-up", desc: "Every business day", urgent: true },
+            { label: "Urgent Follow-up", desc: "Every business day", urgent: true }
+          ]
+        };
+      }
+    }).mount("#app");
+  </script>
+</body>
+
+</html>

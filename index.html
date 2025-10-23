@@ -39,6 +39,12 @@
               <i class="fa-solid fa-toolbox"></i>
               Tool Box
             </button>
+            <button v-for="dashboard in dashboards" :key="dashboard.id" @click="goToFrequencyDashboard(dashboard.id)"
+              :class="dashboard.buttonClass"
+              class="mt-4 w-full flex items-center gap-2 px-4 py-2 text-white rounded transition">
+              <i :class="dashboard.iconClass"></i>
+              {{ dashboard.label }}
+            </button>
           </li>
         </ul>
       </nav>
@@ -47,6 +53,16 @@
   <script>
     const { createApp } = Vue;
     createApp({
+      data() {
+        return {
+          dashboards: [
+            { id: 1, label: 'Frequency Dashboard 1', iconClass: 'fa-solid fa-chart-bar', buttonClass: 'bg-red-600 hover:bg-red-700' },
+            { id: 2, label: 'Frequency Dashboard 2', iconClass: 'fa-solid fa-chart-bar', buttonClass: 'bg-red-600 hover:bg-red-700' },
+            { id: 3, label: 'Frequency Dashboard 3', iconClass: 'fa-solid fa-chart-bar', buttonClass: 'bg-red-600 hover:bg-red-700' },
+            { id: 4, label: 'Frequency Dashboard 4', iconClass: 'fa-solid fa-chart-bar', buttonClass: 'bg-red-600 hover:bg-red-7000' }
+          ]
+        };
+      },
       methods: {
         goToProcessedChangeEvents() {
           window.location.href = 'processed-change-events.html';
@@ -59,6 +75,9 @@
         },
         goToToolBox() {
           window.location.href = 'toolbox.html';
+        },
+        goToFrequencyDashboard(dashboardNumber) {
+          window.location.href = `freq-dash/${dashboardNumber}.html`;
         }
       }
     }).mount('#app');
