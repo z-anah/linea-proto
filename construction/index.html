@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Workflow Builder</title>
+
+    <!-- Tailwind CDN (fast prototype) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Vue 3 (global build) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    /* small visual tweak for step boxes */
+    .step-box {  padding: .5rem; background: white; }
+    .drag-handle { cursor: grab; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+  <div id="app">
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-semibold">Workflow Builder</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="createWorkflow" class="px-3 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">
+          <i class="fa fa-plus mr-2"></i> New Workflow
+        </button>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Left: Workflow List -->
+      <aside class="col-span-3">
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-medium">Workflows</h3>
+            <span class="text-xs text-gray-400">{{ workflows.length }}</span>
+          </div>
+
+          <input v-model="query" placeholder="Search..." class="w-full px-3 py-2 mb-3 border rounded text-sm" />
+
+          <ul class="space-y-2">
+            <li v-for="(wf, idx) in filteredWorkflows" :key="wf.id" class="flex items-center justify-between p-2 rounded hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <button @click="selectWorkflow(wf.id)" :class="{'text-indigo-600': selectedId === wf.id}" class="text-left">
+                  <div class="text-sm font-medium">{{ wf.name }}</div>
+                  <div class="text-xs text-gray-400">{{ wf.type }}</div>
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button @click="duplicateWorkflow(wf.id)" class="text-gray-400 hover:text-gray-700" title="Duplicate"><i class="fa fa-clone"></i></button>
+                <button @click="deleteWorkflow(wf.id)" class="text-red-400 hover:text-red-600" title="Delete"><i class="fa fa-trash"></i></button>
+              </div>
+            </li>
+          </ul>
+
+          <div v-if="!workflows.length" class="text-xs text-gray-400 mt-3">No workflows yet — click "New Workflow"</div>
+        </div>
+
+        <!-- Templates quick list -->
+        <div class="mt-4 bg-white p-4 rounded-lg shadow-sm">
+          <h4 class="font-medium mb-2">Templates</h4>
+          <ul class="space-y-2 text-sm text-gray-600">
+            <li>
+              <button @click="applyTemplate('Purchase Order Entry')" class="w-full text-left px-2 py-1 rounded hover:bg-gray-50">Purchase Order Entry</button>
+            </li>
+            <li>
+              <button @click="applyTemplate('Follow-up Reminder')" class="w-full text-left px-2 py-1 rounded hover:bg-gray-50">Follow-up Reminder</button>
+            </li>
+            <li>
+              <button @click="applyTemplate('Form Populate')" class="w-full text-left px-2 py-1 rounded hover:bg-gray-50">Form Populate</button>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main: Builder -->
+      <main class="col-span-6">
+        <div v-if="activeWorkflow" class="bg-white p-4 rounded-lg shadow-sm">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <input v-model="activeWorkflow.name" class="text-lg font-semibold px-2 py-1 border-b w-full" />
+              <div class="text-xs text-gray-400 mt-1">Type:
+                <select v-model="activeWorkflow.type" class="ml-2 text-sm rounded border px-2 py-0.5">
+                  <option>Data Entry</option>
+                  <option>Populate Form</option>
+                  <option>Follow-up Reminders</option>
+                  <option>Track Responses</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button @click="validateWorkflow" class="px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700">Validate</button>
+              <button @click="saveAll" class="px-3 py-2 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">Save</button>
+              <button @click="testRun" class="px-3 py-2 border rounded text-sm bg-white hover:bg-gray-50">Test Run</button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-12 gap-4">
+            <!-- Steps column -->
+            <div class="col-span-7">
+              <div class="text-sm font-medium mb-2">Flow</div>
+
+              <div class="space-y-3">
+                <!-- Trigger block fixed -->
+                <div class="bg-gray-50 rounded step-box">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm font-medium">Trigger</div>
+                    <div class="text-xs text-gray-400">first block</div>
+                  </div>
+                  <div class="mt-2">
+                    <select v-model="activeWorkflow.trigger.type" class="w-full bg-gray-50 rounded border px-2 py-1 text-sm">
+                      <option value="incoming_email">Incoming Email</option>
+                      <option value="file_uploaded">File Uploaded</option>
+                      <option value="scheduled">Scheduled</option>
+                    </select>
+                    <input v-model="activeWorkflow.trigger.filter" placeholder="Optional filter (subject, sender...)" class="mt-2 w-full px-2 py-1 border rounded text-sm" />
+                  </div>
+                </div>
+
+                <!-- Dynamic steps -->
+                <div v-for="(step, idx) in activeWorkflow.steps" :key="step.id" class="bg-gray-50 rounded step-box">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <span class="drag-handle text-gray-400"><i class="fa fa-grip-lines"></i></span>
+                      <input v-model="step.name" class="text-sm font-medium px-1 py-0.5 border-b" />
+                      <span class="text-xs text-gray-400">{{ step.action }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-gray-500">
+                      <button @click="moveStep(idx, -1)" :disabled="idx===0" title="Move up" class="text-sm hover:text-gray-700"><i class="fa fa-arrow-up"></i></button>
+                      <button @click="moveStep(idx, +1)" :disabled="idx===activeWorkflow.steps.length-1" title="Move down" class="text-sm hover:text-gray-700"><i class="fa fa-arrow-down"></i></button>
+                      <button @click="removeStep(idx)" title="Remove" class="text-red-400 hover:text-red-600"><i class="fa fa-trash"></i></button>
+                    </div>
+                  </div>
+
+                  <div class="mt-2 grid grid-cols-2 gap-2">
+                    <select v-model="step.action" class="px-2 py-1 border rounded text-sm">
+                      <option v-for="a in actionTypes" :value="a">{{ a }}</option>
+                    </select>
+
+                    <select v-model="step.system" class="px-2 py-1 border rounded text-sm">
+                      <option value="">Select system (optional)</option>
+                      <option>QuickBooks</option>
+                      <option>Procore</option>
+                      <option>ERP</option>
+                      <option>Google Drive</option>
+                    </select>
+                  </div>
+
+                  <textarea v-model="step.instructions" rows="3" placeholder="Instructions (natural language for the AI)" class="w-full mt-2 px-2 py-1 border rounded text-sm"></textarea>
+
+                  <input v-model="step.exception" placeholder="Exception handling (optional)" class="mt-2 w-full px-2 py-1 border rounded text-sm" />
+                </div>
+
+                <div class="flex gap-2">
+                  <button @click="addStep" class="px-3 py-2 border rounded text-sm bg-white hover:bg-gray-50"><i class="fa fa-plus mr-2"></i> Add Step</button>
+                  <button @click="applySuggested" class="px-3 py-2 bg-amber-500 text-white rounded text-sm hover:bg-amber-600">AI Suggest</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Step configuration preview -->
+            <div class="col-span-5">
+              <div class="text-sm font-medium mb-2">Configuration Panel</div>
+
+              <div class="bg-gray-50 p-3 rounded">
+                <div class="text-xs text-gray-500 mb-2">Selected workflow summary</div>
+                <div class="text-sm"><strong>Name:</strong> {{ activeWorkflow.name }}</div>
+                <div class="text-sm"><strong>Type:</strong> {{ activeWorkflow.type }}</div>
+                <div class="text-sm"><strong>Trigger:</strong> {{ activeWorkflow.trigger.type }} <span class="text-gray-400">({{ activeWorkflow.trigger.filter || 'no filter' }})</span></div>
+
+                <hr class="my-3" />
+
+                <div class="text-xs text-gray-500 mb-2">Step variables (auto-mapped)</div>
+                <div v-if="activeWorkflow.steps.length" class="space-y-2 text-sm">
+                  <div v-for="(s, i) in activeWorkflow.steps" :key="s.id" class="p-2 bg-white rounded border text-sm">
+                    <div class="flex items-center justify-between">
+                      <div class="font-medium">{{ i+1 }}. {{ s.name || s.action }}</div>
+                      <div class="text-xs text-gray-400">{{ s.system || 'No system' }}</div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">{{ s.instructions || 'No instructions yet' }}</div>
+                    <div class="text-xs text-red-500 mt-1" v-if="s.exception"><strong>On exception:</strong> {{ s.exception }}</div>
+                  </div>
+                </div>
+                <div v-else class="text-sm text-gray-400">No steps yet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else class="bg-white p-6 rounded-lg shadow-sm text-center text-gray-500">
+          Select or create a workflow to begin. Try "Purchase Order Entry" template.
+        </div>
+      </main>
+
+      <!-- Right: Logs / Metadata -->
+      <aside class="col-span-3">
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+          <h4 class="font-medium mb-2">Execution Logs</h4>
+          <div class="text-sm text-gray-500" v-if="!logs.length">No runs yet (click Test Run)</div>
+          <ul class="space-y-2 text-xs">
+            <li v-for="(l, i) in logs.slice().reverse()" :key="i" class="p-2 bg-gray-50 rounded">
+              <div class="flex items-center justify-between">
+                <div class="text-xs">{{ l.time }}</div>
+                <div class="text-xs text-gray-400">{{ l.status }}</div>
+              </div>
+              <div class="text-xs mt-1 text-gray-600">{{ l.summary }}</div>
+            </li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, reactive, computed } = Vue;
+
+    createApp({
+      data() {
+        return {
+          query: '',
+          actionTypes: ['Read Email', 'Find Customer', 'Create Purchase Order', 'Populate Template', 'Send Notification', 'Update ERP', 'Wait'],
+          workflows: [],
+          selectedId: null,
+          logs: [],
+          lastValidation: ''
+        };
+      },
+      computed: {
+        filteredWorkflows() {
+          if (!this.query) return this.workflows;
+          return this.workflows.filter(w => (w.name + ' ' + w.type).toLowerCase().includes(this.query.toLowerCase()));
+        },
+        activeWorkflow() {
+          return this.workflows.find(w => w.id === this.selectedId) || null;
+        }
+      },
+      created() {
+        // load from localStorage or seed dummy data
+        const saved = localStorage.getItem('wf_prototype_v1');
+        if (saved) {
+          try {
+            this.workflows = JSON.parse(saved);
+            if (this.workflows.length) this.selectedId = this.workflows[0].id;
+          } catch(e) { console.warn('invalid saved data'); this.seed(); }
+        } else {
+          this.seed();
+        }
+        const savedLogs = localStorage.getItem('wf_prototype_logs');
+        this.logs = savedLogs ? JSON.parse(savedLogs) : [];
+      },
+      methods: {
+        seed() {
+          // local dummy data
+          this.workflows = [
+            {
+              id: this.uid(), name: "Purchase Order Entry", type: "Data Entry",
+              trigger: { type: "incoming_email", filter: "PO or purchase order" },
+              steps: [
+                { id: this.uid(), name: "Read Email", action: "Read Email", system: "", instructions: "Extract sender, project, PO number, and attachment", exception: "" },
+                { id: this.uid(), name: "Find Customer", action: "Find Customer", system: "QuickBooks", instructions: "Look up by sender email", exception: "Notify manager if not found" },
+                { id: this.uid(), name: "Create PO", action: "Create Purchase Order", system: "ERP", instructions: "Map fields: PO number, items, quantities", exception: "" }
+              ]
+            },
+            {
+              id: this.uid(), name: "Weekly Follow-up", type: "Follow-up Reminders",
+              trigger: { type: "scheduled", filter: "Every Monday" },
+              steps: [
+                { id: this.uid(), name: "Find Overdue Submittals", action: "Find Customer", system: "Procore", instructions: "Query submittals with status overdue", exception: "" },
+                { id: this.uid(), name: "Send Reminder", action: "Send Notification", system: "Email", instructions: "Email assigned contact with template", exception: "" }
+              ]
+            }
+          ];
+          this.selectedId = this.workflows[0].id;
+          this.saveAll();
+        },
+        uid() { return Math.random().toString(36).slice(2,9); },
+        createWorkflow() {
+          const wf = {
+            id: this.uid(), name: `New Workflow ${this.workflows.length+1}`, type: "Data Entry",
+            trigger: { type: "incoming_email", filter: "" },
+            steps: []
+          };
+          this.workflows.push(wf);
+          this.selectedId = wf.id;
+          this.saveAll();
+        },
+        selectWorkflow(id) { this.selectedId = id; },
+        addStep() {
+          if (!this.activeWorkflow) return;
+          this.activeWorkflow.steps.push({
+            id: this.uid(),
+            name: `Step ${this.activeWorkflow.steps.length+1}`,
+            action: this.actionTypes[0],
+            system: '',
+            instructions: '',
+            exception: ''
+          });
+        },
+        removeStep(idx) {
+          if (!this.activeWorkflow) return;
+          this.activeWorkflow.steps.splice(idx, 1);
+        },
+        moveStep(idx, dir) {
+          const to = idx + dir;
+          if (to < 0 || to >= this.activeWorkflow.steps.length) return;
+          const arr = this.activeWorkflow.steps;
+          [arr[idx], arr[to]] = [arr[to], arr[idx]];
+        },
+        saveAll() {
+          localStorage.setItem('wf_prototype_v1', JSON.stringify(this.workflows));
+          this.lastValidation = '';
+          this.toast('Saved locally');
+        },
+        exportAll() {
+          const blob = new Blob([JSON.stringify(this.workflows, null, 2)], {type: 'application/json'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'workflows.json';
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        deleteWorkflow(id) {
+          if (!confirm('Delete workflow?')) return;
+          this.workflows = this.workflows.filter(w => w.id !== id);
+          if (this.selectedId === id) this.selectedId = this.workflows[0]?.id || null;
+          this.saveAll();
+        },
+        duplicateWorkflow(id) {
+          const src = this.workflows.find(w => w.id === id);
+          if (!src) return;
+          const copy = JSON.parse(JSON.stringify(src));
+          copy.id = this.uid();
+          copy.name = src.name + ' (Copy)';
+          // refresh step ids
+          copy.steps = copy.steps.map(s => ({...s, id: this.uid()}));
+          this.workflows.push(copy);
+          this.saveAll();
+          this.toast('Duplicated');
+        },
+        applyTemplate(name) {
+          const templateMap = {
+            'Purchase Order Entry': () => ({
+              id: this.uid(), name: 'Purchase Order Entry (from template)', type: 'Data Entry',
+              trigger: { type: 'incoming_email', filter: 'PO' },
+              steps: [
+                { id: this.uid(), name: 'Read Email', action: 'Read Email', system: '', instructions: 'Extract PO number & attachment', exception: '' },
+                { id: this.uid(), name: 'Create PO', action: 'Create Purchase Order', system: 'ERP', instructions: 'Populate PO fields', exception: '' }
+              ]
+            }),
+            'Follow-up Reminder': () => ({
+              id: this.uid(), name: 'Follow-up Reminder (from template)', type: 'Follow-up Reminders',
+              trigger: { type: 'scheduled', filter: 'Weekly' },
+              steps: [
+                { id: this.uid(), name: 'Find Due Items', action: 'Find Customer', system: 'Procore', instructions: 'List due items', exception: '' },
+                { id: this.uid(), name: 'Send Reminders', action: 'Send Notification', system: 'Email', instructions: 'Send follow-up email', exception: '' }
+              ]
+            }),
+            'Form Populate': () => ({
+              id: this.uid(), name: 'Form Populate (from template)', type: 'Populate Form',
+              trigger: { type: 'file_uploaded', filter: 'form' },
+              steps: [
+                { id: this.uid(), name: 'Extract Data', action: 'Read Email', system: '', instructions: 'Extract fields from PDF', exception: '' },
+                { id: this.uid(), name: 'Populate Template', action: 'Populate Template', system: 'Google Drive', instructions: 'Fill form template and save copy', exception: '' }
+              ]
+            })
+          };
+          const creator = templateMap[name];
+          if (creator) {
+            const wf = creator();
+            this.workflows.push(wf);
+            this.selectedId = wf.id;
+            this.saveAll();
+          }
+        },
+        applySuggested() {
+          // simple "AI suggest" fake: copy instruction templates based on action
+          if (!this.activeWorkflow) return;
+          this.activeWorkflow.steps.forEach(s => {
+            if (!s.instructions) {
+              if (s.action.includes('Read')) s.instructions = 'Extract structured fields (PO#, amounts, attachments).';
+              else if (s.action.includes('Find')) s.instructions = 'Search system for matching record by email or identifier.';
+              else if (s.action.includes('Create')) s.instructions = 'Create record with mapped fields from previous step.';
+              else if (s.action.includes('Populate')) s.instructions = 'Open template, fill placeholders with extracted data, save to folder.';
+              else s.instructions = 'Perform action as described.';
+            }
+          });
+          this.toast('Applied simple suggestions');
+        },
+        validateWorkflow() {
+          if (!this.activeWorkflow) return;
+          const wf = this.activeWorkflow;
+          if (!wf.name) { this.lastValidation = 'Workflow needs a name'; return; }
+          if (!wf.trigger || !wf.trigger.type) { this.lastValidation = 'Trigger not configured'; return; }
+          if (!wf.steps.length) { this.lastValidation = 'Add at least one step'; return; }
+          for (const s of wf.steps) {
+            if (!s.action) { this.lastValidation = 'Each step needs an action'; return; }
+            if (!s.instructions) { this.lastValidation = `Step "${s.name}" is missing instructions`; return; }
+          }
+          this.lastValidation = 'Validation passed ✅';
+          this.saveAll();
+        },
+        testRun() {
+          if (!this.activeWorkflow) return;
+          // Fake run: build a summary and store in logs
+          const wf = JSON.parse(JSON.stringify(this.activeWorkflow));
+          const summary = `Ran ${wf.name} with ${wf.steps.length} steps. Trigger: ${wf.trigger.type}`;
+          const log = { time: new Date().toLocaleString(), status: 'OK', summary };
+          this.logs.push(log);
+          localStorage.setItem('wf_prototype_logs', JSON.stringify(this.logs));
+          this.toast('Test run completed (simulated)');
+        },
+        toast(msg) { console.log('> prototype:', msg); }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

@@ -19,8 +19,13 @@
       <nav>
         <ul class="space-y-4">
           <li>
+            <button @click="goToWorkflowBuilder"
+              class="mt-4 w-full flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
+              <i class="fa-solid fa-diagram-project"></i>
+              Workflow Builder
+            </button>
             <button @click="goToProcessedChangeEvents"
-              class="w-full flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+              class="mt-4 w-full flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
               <i class="fa-solid fa-list-check"></i>
               Processed Change Events
             </button>
@@ -78,6 +83,9 @@
         },
         goToFrequencyDashboard(dashboardNumber) {
           window.location.href = `freq-dash/${dashboardNumber}.html`;
+        },
+        goToWorkflowBuilder() {
+          window.location.href = 'construction/index.html';
         }
       }
     }).mount('#app');
